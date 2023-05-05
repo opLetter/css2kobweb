@@ -1,0 +1,14 @@
+site:
+  title: "css2kobweb"
+
+server:
+  files:
+    dev:
+      contentRoot: "build/processedResources/js/main/public"
+      script: "build/developmentExecutable/css2kobweb.js"
+      api: "build/libs/css2kobweb.jar"
+    prod:
+      script: "build/distributions/css2kobweb.js"
+      siteRoot: ".kobweb/site"
+
+  port: 8080
