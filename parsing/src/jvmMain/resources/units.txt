@@ -1,0 +1,65 @@
+        inline val percent get() = "%".unsafeCast<percent>()
+
+        inline val em get() = "em".unsafeCast<em>()
+
+        inline val ex get() = "ex".unsafeCast<ex>()
+
+        inline val ch get() = "ch".unsafeCast<ch>()
+
+        inline val ic get() = "ic".unsafeCast<ic>()
+
+        inline val cssRem get() = "rem".unsafeCast<rem>() // manually edited
+
+        inline val lh get() = "lh".unsafeCast<lh>()
+
+        inline val rlh get() = "rlh".unsafeCast<rlh>()
+
+        inline val vw get() = "vw".unsafeCast<vw>()
+
+        inline val vh get() = "vh".unsafeCast<vh>()
+
+        inline val vi get() = "vi".unsafeCast<vi>()
+
+        inline val vb get() = "vb".unsafeCast<vb>()
+
+        inline val vmin get() = "vmin".unsafeCast<vmin>()
+
+        inline val vmax get() = "vmax".unsafeCast<vmax>()
+
+        inline val cm get() = "cm".unsafeCast<cm>()
+
+        inline val mm get() = "mm".unsafeCast<mm>()
+
+        inline val Q get() = "Q".unsafeCast<Q>()
+
+        inline val pt get() = "pt".unsafeCast<pt>()
+
+        inline val pc get() = "pc".unsafeCast<pc>()
+
+        inline val px get() = "px".unsafeCast<px>()
+
+        inline val deg get() = "deg".unsafeCast<deg>()
+
+        inline val grad get() = "grad".unsafeCast<grad>()
+
+        inline val rad get() = "rad".unsafeCast<rad>()
+
+        inline val turn get() = "turn".unsafeCast<turn>()
+
+        inline val s get() = "s".unsafeCast<s>()
+
+        inline val ms get() = "ms".unsafeCast<ms>()
+
+        inline val Hz get() = "Hz".unsafeCast<Hz>()
+
+        inline val kHz get() = "kHz".unsafeCast<kHz>()
+
+        inline val dpi get() = "dpi".unsafeCast<dpi>()
+
+        inline val dpcm get() = "dpcm".unsafeCast<dpcm>()
+
+        inline val dppx get() = "dppx".unsafeCast<dppx>()
+
+        inline val fr get() = "fr".unsafeCast<fr>()
+
+        inline val number get() = "number".unsafeCast<number>()

@@ -9,3 +9,4 @@ pluginManagement {
 rootProject.name = "css2kobweb"
 
 include(":site")
+include(":parsing")
