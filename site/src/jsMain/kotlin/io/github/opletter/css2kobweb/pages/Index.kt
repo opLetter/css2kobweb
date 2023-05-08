@@ -16,6 +16,7 @@ import com.varabyte.kobweb.silk.components.text.SpanText
 import io.github.opletter.css2kobweb.CssParseResult
 import io.github.opletter.css2kobweb.components.widgets.KotlinCode
 import io.github.opletter.css2kobweb.css2kobweb
+import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.css.Position
 import org.jetbrains.compose.web.css.cssRem
 import org.jetbrains.compose.web.css.percent
@@ -39,7 +40,7 @@ object ColorScheme {
 @Page
 @Composable
 fun HomePage() {
-    var textValue by remember { mutableStateOf("hello: world") }
+    var textValue by remember { mutableStateOf("") }
     var output: CssParseResult? by remember { mutableStateOf(null) }
 
     var syntaxHighlight by remember { mutableStateOf(true) }
@@ -71,6 +72,7 @@ fun HomePage() {
                 textValue,
                 textAreaModifier.toAttrs {
                     onInput { textValue = it.value }
+                    placeholder("hello: world;")
                 }
             )
             Box(textAreaModifier.position(Position.Relative)) {
