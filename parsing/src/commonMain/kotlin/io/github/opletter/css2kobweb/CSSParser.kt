@@ -1,19 +1,18 @@
 package io.github.opletter.css2kobweb
 
 // this function was partially created by ChatGPT
-internal fun parseCss(css: String): Map<String, List<ParsedProperty>> {
+internal fun parseCss(css: String): Map<String, ParsedModifier> {
     @Suppress("RegExpRedundantEscape") // redundancy needed for JS
     val regex = "([^{}]+)\\s*\\{\\s*([^{}]+)\\s*\\}".toRegex()
     val matches = regex.findAll(css)
-    return matches.flatMap { matchResult ->
+    return matches.associate { matchResult ->
         val selector = matchResult.groupValues[1].trim()
         val properties = getProperties(matchResult.groupValues[2])
-
-        selector.split(", ").map { it to properties }
-    }.toMap()
+        selector to properties
+    }
 }
 
-internal fun getProperties(str: String): List<ParsedProperty> {
+internal fun getProperties(str: String): ParsedModifier {
     val props = str.split(";").map { it.trim() }.filter { it.isNotEmpty() }
     return props.map { prop ->
         val (name, value) = prop.split(":").map { it.trim() } + "" // use empty if not present
@@ -25,5 +24,5 @@ internal fun getProperties(str: String): List<ParsedProperty> {
         } else if (it.function == "height" && it.args.first().toString() == Arg.UnitNum(100, "percent").toString()) {
             ParsedProperty(function = "fillMaxHeight", args = emptyList())
         } else it
-    }
+    }.let { ParsedModifier(it) }
 }
