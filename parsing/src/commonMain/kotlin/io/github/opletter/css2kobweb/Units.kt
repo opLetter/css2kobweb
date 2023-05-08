@@ -35,11 +35,3 @@ internal val units = mapOf(
     "fr" to "fr",
     "number" to "number",
 )
-
-internal fun replaceUnits(str: String): String {
-    return str.replace(Regex("""(\d+)(\w+)""")) {
-        val (num, unit) = it.destructured
-        val unitName = units[unit] ?: return@replace it.value
-        "$num.$unitName"
-    }
-}

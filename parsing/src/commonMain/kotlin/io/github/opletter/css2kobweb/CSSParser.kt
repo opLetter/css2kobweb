@@ -1,7 +1,7 @@
 package io.github.opletter.css2kobweb
 
-// this function was created by ChatGPT
-internal fun parseCss(css: String): Map<String, Map<String, String>> {
+// this function was partially created by ChatGPT
+internal fun parseCss(css: String): Map<String, List<ParsedProperty>> {
     @Suppress("RegExpRedundantEscape") // redundancy needed for JS
     val regex = "([^{}]+)\\s*\\{\\s*([^{}]+)\\s*\\}".toRegex()
     val matches = regex.findAll(css)
@@ -13,24 +13,17 @@ internal fun parseCss(css: String): Map<String, Map<String, String>> {
     }.toMap()
 }
 
-internal fun getProperties(str: String): Map<String, String> {
+internal fun getProperties(str: String): List<ParsedProperty> {
     val props = str.split(";").map { it.trim() }.filter { it.isNotEmpty() }
-    return props.associate { prop ->
+    return props.map { prop ->
         val (name, value) = prop.split(":").map { it.trim() } + "" // use empty if not present
-        kebabToCamelCase(name) to value
-    }.mapValues { (prop, v) ->
-        parseValue(propertyName = prop, value = v)
-    }.map { (k, v) ->
-        if (k == "width" && v == "100.percent") {
-            "fillMaxWidth" to ""
-        } else if (k == "height" && v == "100.percent") {
-            "fillMaxHeight" to ""
-        } else k to v
-    }.toMap()
-}
-
-internal fun getModifierFromParsed(properties: Map<String, String>): String {
-    return "|Modifier\n|\t" + properties.map {
-        (prop, value) -> ".$prop($value)"
-    }.joinToString("\n|\t")
+        val args = parseValue(propertyName = kebabToCamelCase(name), value = value)
+        ParsedProperty(function = kebabToCamelCase(name), args = args)
+    }.map {
+        if (it.function == "width" && it.args.first().toString() == Arg.UnitNum(100, "percent").toString()) {
+            ParsedProperty(function = "fillMaxWidth", args = emptyList())
+        } else if (it.function == "height" && it.args.first().toString() == Arg.UnitNum(100, "percent").toString()) {
+            ParsedProperty(function = "fillMaxHeight", args = emptyList())
+        } else it
+    }
 }

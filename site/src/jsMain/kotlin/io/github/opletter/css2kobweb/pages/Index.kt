@@ -13,10 +13,9 @@ import com.varabyte.kobweb.compose.ui.modifiers.*
 import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.silk.components.forms.Button
 import com.varabyte.kobweb.silk.components.text.SpanText
-import com.varabyte.kobweb.silk.theme.breakpoint.breakpointFloor
+import io.github.opletter.css2kobweb.CssParseResult
 import io.github.opletter.css2kobweb.components.widgets.KotlinCode
 import io.github.opletter.css2kobweb.css2kobweb
-import kotlinx.browser.window
 import org.jetbrains.compose.web.css.Position
 import org.jetbrains.compose.web.css.cssRem
 import org.jetbrains.compose.web.css.percent
@@ -34,13 +33,14 @@ object ColorScheme {
     val function = Color.rgb(0x56A8F5)
     val string = Color.rgb(0x6AAB73)
     val number = Color.rgb(0x2AACB8)
+    val namedArg = Color.rgb(0x56C1D6)
 }
 
 @Page
 @Composable
 fun HomePage() {
     var textValue by remember { mutableStateOf("hello: world") }
-    var outputText by remember { mutableStateOf("") }
+    var output: CssParseResult? by remember { mutableStateOf(null) }
 
     var syntaxHighlight by remember { mutableStateOf(true) }
     Column(
@@ -74,12 +74,12 @@ fun HomePage() {
                 }
             )
             Box(textAreaModifier.position(Position.Relative)) {
-                KotlinCode(outputText, syntaxHighlight)
+                output?.let { KotlinCode(it, syntaxHighlight) }
                 Button(
                     {
                         @Suppress("UNUSED_VARIABLE") // needed & used in js call
-                        val textToCopy = outputText
-                        js("navigator.clipboard.writeText(textToCopy)")
+                        val textToCopy = output?.toString().orEmpty()
+                        js("navigator.clipboard.writeText(textToCopy)") as Unit
                     },
                     Modifier
                         .position(Position.Absolute)
@@ -89,7 +89,7 @@ fun HomePage() {
                 }
             }
         }
-        Button({ outputText = css2kobweb(textValue) }) {
+        Button({ output = css2kobweb(textValue) }) {
             SpanText("css 2 kobweb")
         }
         Label {

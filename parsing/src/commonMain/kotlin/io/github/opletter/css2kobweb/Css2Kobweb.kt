@@ -1,35 +1,30 @@
 package io.github.opletter.css2kobweb
 
-
-fun css2kobweb(rawCSS: String): String {
+fun css2kobweb(rawCSS: String): CssParseResult {
     val cssBySelector = parseCss(rawCSS)
 
     if (cssBySelector.isEmpty()) {
         val props = getProperties(rawCSS)
-        return getModifierFromParsed(props).trimMargin()
+        return ParsedModifier(props)
     }
 
     val styles = cssBySelector.keys.groupBy { it.substringBefore(":") }
-    return styles.map { (baseName, selectors) ->
+    val parsedStyles = styles.map { (baseName, selectors) ->
         if (selectors.singleOrNull() == baseName) {
-            val x = getModifierFromParsed(cssBySelector[selectors.first()]!!)
-            return@map """
-                |val ${kebabToPascalCase(baseName.substringAfter("."))}Style by ComponentStyle.base {
-                ${x.replace("|", "|\t")}
-                |}
-            """.trimMargin()
+            ParsedComponentStyle(
+                name = kebabToPascalCase(baseName.substringAfter(".")),
+                modifiers = mapOf(
+                    "base" to ParsedModifier(cssBySelector[selectors.first()]!!)
+                )
+            )
         }
-
-        val modifiers = selectors.joinToString("\n|", prefix = "|") { selector ->
+        val modifiers = selectors.associate { selector ->
             val properties = cssBySelector[selector]!!
             val cleanUpName = if (selector == baseName) "base" else kebabToCamelCase(selector.substringAfter(":"))
-            val modifier = getModifierFromParsed(properties).replace("|", "|\t")
-            "$cleanUpName {\n$modifier\n|}"
+            val modifier = ParsedModifier(properties)
+            cleanUpName to modifier
         }
-        """
-            |val ${kebabToPascalCase(baseName.substringAfter("."))}Style by ComponentStyle {
-            ${modifiers.replace("|", "|\t")}
-            |}
-        """.trimMargin()
-    }.joinToString("\n")
+        ParsedComponentStyle(kebabToPascalCase(baseName.substringAfter(".")), modifiers)
+    }
+    return ParsedComponentStyles(parsedStyles)
 }
