@@ -1,7 +1,7 @@
 package io.github.opletter.css2kobweb
 
 fun css2kobweb(rawCSS: String): CssParseResult {
-    val cssBySelector = parseCss(rawCSS).ifEmpty { return getProperties(rawCSS) }
+    val cssBySelector = parseCss(rawCSS).ifEmpty { return getProperties(rawCSS) }.toMap()
 
     val styles = cssBySelector.keys.groupBy { it.substringBefore(":") }
     val parsedStyles = styles.map { (baseName, selectors) ->
