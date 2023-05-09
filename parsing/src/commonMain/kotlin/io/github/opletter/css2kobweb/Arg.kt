@@ -17,7 +17,7 @@ sealed class Arg(private val value: String) {
                 val unit = units[potentialUnit]
                 if (unit != null) {
                     val num = str.dropLast(potentialUnit.length)
-                    return UnitNum(num.toIntOrNull() ?: unit.toDouble(), unit)
+                    return UnitNum(num.toIntOrNull() ?: num.toDouble(), unit)
                 }
                 return null
             }
