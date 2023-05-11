@@ -13,9 +13,9 @@ import com.varabyte.kobweb.compose.ui.modifiers.*
 import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.silk.components.forms.Button
 import com.varabyte.kobweb.silk.components.text.SpanText
-import io.github.opletter.css2kobweb.CssParseResult
+import io.github.opletter.css2kobweb.CodeBlock
 import io.github.opletter.css2kobweb.components.widgets.KotlinCode
-import io.github.opletter.css2kobweb.css2kobweb
+import io.github.opletter.css2kobweb.css2kobwebAsCode
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.css.Position
 import org.jetbrains.compose.web.css.cssRem
@@ -41,7 +41,7 @@ object ColorScheme {
 @Composable
 fun HomePage() {
     var textValue by remember { mutableStateOf("") }
-    var output: CssParseResult? by remember { mutableStateOf(null) }
+    var outputCode: List<CodeBlock> by remember { mutableStateOf(emptyList()) }
 
     var syntaxHighlight by remember { mutableStateOf(true) }
     Column(
@@ -76,11 +76,11 @@ fun HomePage() {
                 }
             )
             Box(textAreaModifier.position(Position.Relative)) {
-                output?.let { KotlinCode(it, syntaxHighlight) }
+                KotlinCode(outputCode, syntaxHighlight)
                 Button(
                     {
                         @Suppress("UNUSED_VARIABLE") // needed & used in js call
-                        val textToCopy = output?.toString().orEmpty()
+                        val textToCopy = outputCode.joinToString("")
                         js("navigator.clipboard.writeText(textToCopy)") as Unit
                     },
                     Modifier
@@ -91,7 +91,7 @@ fun HomePage() {
                 }
             }
         }
-        Button({ output = css2kobweb(textValue) }) {
+        Button({ outputCode = css2kobwebAsCode(textValue) }) {
             SpanText("css 2 kobweb")
         }
         Label {
