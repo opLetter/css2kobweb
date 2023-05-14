@@ -80,6 +80,7 @@ fun HomePage() {
                     Modifier
                         .position(Position.Absolute)
                         .top(0.px)
+                        .lineHeight(105.percent)
                 ) {
                     KotlinCode(outputCode, syntaxHighlight)
                 }
