@@ -75,8 +75,14 @@ fun HomePage() {
                     placeholder("hello: world;")
                 }
             )
-            Box(textAreaModifier.position(Position.Relative)) {
-                KotlinCode(outputCode, syntaxHighlight)
+            Box(textAreaModifier.position(Position.Relative).maxHeight(100.percent)) {
+                Box(
+                    Modifier
+                        .position(Position.Absolute)
+                        .top(0.px)
+                ) {
+                    KotlinCode(outputCode, syntaxHighlight)
+                }
                 Button(
                     {
                         @Suppress("UNUSED_VARIABLE") // needed & used in js call
