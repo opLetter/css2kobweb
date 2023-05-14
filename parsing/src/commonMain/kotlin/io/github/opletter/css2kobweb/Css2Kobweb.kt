@@ -12,9 +12,10 @@ fun css2kobweb(rawCSS: String): CssParseResult {
             )
         }
         val modifiers = selectors.associate { selector ->
-            val properties = cssBySelector[selector]!!
-            val cleanUpName = if (selector == baseName) "base" else kebabToCamelCase(selector.substringAfter(":"))
-            cleanUpName to properties
+            val cleanedUpName = if (selector == baseName) "base"
+            else selector.substringAfter(baseName).let { cssRules[it] ?: "cssRule(\"$it\")" }
+
+            cleanedUpName to cssBySelector[selector]!!
         }
         ParsedComponentStyle(kebabToPascalCase(baseName.substringAfter(".")), modifiers)
     }
