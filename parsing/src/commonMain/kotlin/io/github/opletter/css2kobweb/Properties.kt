@@ -48,10 +48,18 @@ internal fun parseValue(propertyName: String, value: String): List<Arg> {
                 return@map Arg.Property("Colors", color)
             }
 
-            val className = when (propertyName) {
-                "display" -> "DisplayStyle"
-                else -> propertyName.replaceFirstChar { it.uppercase() }
-            }
-            Arg.Property(className, kebabToPascalCase(prop))
+        val className = when (propertyName) {
+            "display" -> "DisplayStyle"
+            else -> propertyName.replaceFirstChar { it.uppercase() }
         }
+
+        if (prop.endsWith(")")) {
+            return@map Arg.Function(
+                "$className.${kebabToCamelCase(prop.substringBefore("("))}",
+                parseValue(propertyName, prop.substringAfter("(").substringBeforeLast(")"))
+            )
+        }
+
+        Arg.Property(className, kebabToPascalCase(prop))
+    }
 }
