@@ -64,8 +64,17 @@ internal fun List<Arg>.asCodeBlocks(): List<CodeBlock> {
             }
 
             is Arg.UnitNum -> {
-                listOf(
-                    CodeBlock(arg.value.toString() + ".", CodeElement.Plain),
+                val num = arg.toString().substringBeforeLast(".")
+                val numCode = if (num.first() == '(') {
+                    listOf(
+                        CodeBlock("(-", CodeElement.Plain),
+                        CodeBlock(num.drop(2).dropLast(1), CodeElement.Number),
+                        CodeBlock(")", CodeElement.Plain),
+                    )
+                } else listOf(CodeBlock(num, CodeElement.Number))
+
+                numCode + listOf(
+                    CodeBlock(".", CodeElement.Plain),
                     CodeBlock(arg.type, CodeElement.Property),
                 )
             }

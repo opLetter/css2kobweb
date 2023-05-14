@@ -10,10 +10,12 @@ sealed class Arg(private val value: String) {
     class Float(value: kotlin.Number) : Number("${value}f")
 
     // technically this behaves the same as [Property], but t be more explicit we treat it as a separate type
-    class UnitNum(val value: kotlin.Number, val type: String) : Arg("$value.$type") {
+    class UnitNum(value: kotlin.Number, val type: String) :
+        Arg("${if (value.toDouble() < 0.0) "($value)" else "$value"}.$type") {
+
         companion object {
             fun ofOrNull(str: String): UnitNum? {
-                val potentialUnit = str.dropWhile { it.isDigit() || it == '.' }
+                val potentialUnit = str.dropWhile { it.isDigit() || it == '.' || it == '-' }
                 val unit = units[potentialUnit]
                 if (unit != null) {
                     val num = str.dropLast(potentialUnit.length)
