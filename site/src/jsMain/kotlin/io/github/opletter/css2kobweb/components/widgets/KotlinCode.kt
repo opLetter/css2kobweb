@@ -1,6 +1,7 @@
 package io.github.opletter.css2kobweb.components.widgets
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.modifiers.color
 import com.varabyte.kobweb.compose.ui.modifiers.margin
@@ -18,7 +19,11 @@ fun KotlinCode(code: List<CodeBlock>, syntaxHighlight: Boolean) {
     Pre(Modifier.margin(0.px).toAttrs()) {
         if (!syntaxHighlight) {
             Text(code.joinToString(""))
-        } else code.forEach { HighlightedCode(it) }
+        } else {
+            key(code.size) { // fixes performance issues
+                code.forEach { HighlightedCode(it) }
+            }
+        }
     }
 }
 
