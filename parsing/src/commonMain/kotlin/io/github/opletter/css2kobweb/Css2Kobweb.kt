@@ -17,7 +17,9 @@ fun css2kobweb(rawCSS: String): CssParseResult {
 
             cleanedUpName to cssBySelector[selector]!!
         }
-        ParsedComponentStyle(kebabToPascalCase(baseName.substringAfter(".")), modifiers)
+        val styleName = kebabToPascalCase(baseName.substringAfter(".").substringAfter("#"))
+            .replace("*", "All")
+        ParsedComponentStyle(styleName, modifiers)
     }
     return ParsedComponentStyles(parsedStyles)
 }
