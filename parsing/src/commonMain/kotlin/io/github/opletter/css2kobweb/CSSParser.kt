@@ -16,7 +16,10 @@ internal fun getProperties(str: String): ParsedModifier {
     val props = str.split(";").map { it.trim() }.filter { it.isNotEmpty() }
     return props.map { prop ->
         val (name, value) = prop.split(":").map { it.trim() } + "" // use empty if not present
-        val args = parseValue(propertyName = kebabToCamelCase(name), value = value)
+        val args = parseValue(
+            propertyName = kebabToCamelCase(name),
+            value = value.replace("\n", "").replace("  ", ""),
+        )
         ParsedProperty(function = kebabToCamelCase(name), args = args)
     }.map {
         if (it.function == "width" && it.args.first().toString() == Arg.UnitNum(100, "percent").toString()) {
