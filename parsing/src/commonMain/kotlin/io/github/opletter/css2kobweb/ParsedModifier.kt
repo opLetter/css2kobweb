@@ -7,14 +7,21 @@ class ParsedModifier(val properties: List<ParsedProperty>) : CssParseResult {
 }
 
 class ParsedComponentStyles(val styles: List<ParsedComponentStyle>) : CssParseResult {
-    override fun toString(): String = styles.joinToString("\n")
+    override fun toString(): String {
+        val globalModifiers = styles.flatMap { style ->
+            style.modifiers.values.flatMap { it.filterModifiers<StyleModifier.Global>() }
+        }.distinctBy { it.value }
+
+        return globalModifiers.joinToString("") { "private val ${it.value} = ${it.modifier}\n" } +
+                styles.joinToString("\n")
+    }
 }
 
 class ParsedProperty(val function: String, val args: List<Arg>) {
     override fun toString(): String = "$function(${args.joinToString(", ")})"
 }
 
-class ParsedComponentStyle(val name: String, val modifiers: Map<String, ParsedModifier>) {
+class ParsedComponentStyle(val name: String, val modifiers: Map<String, StyleModifier>) {
     private fun toStringBase(): String {
         return """
             |val ${name}Style by ComponentStyle.base {
@@ -24,12 +31,18 @@ class ParsedComponentStyle(val name: String, val modifiers: Map<String, ParsedMo
     }
 
     private fun toStringMultiple(): String {
-        val modifiers = modifiers.toList().joinToString("\n|", prefix = "|") { (k, v) ->
+        val modifiersStr = modifiers.toList().joinToString("\n|", prefix = "|") { (k, v) ->
             "$k {\n|\t${v.toString().replace("\n", "\n|\t")}\n|}"
         }
+        val localModifiers = modifiers.values
+            .flatMap { it.filterModifiers<StyleModifier.Local>() }
+            .distinctBy { it.value }
+            .joinToString("") { "\n\tval ${it.value} = ${it.modifier}" }
+            .replace("\t.", "\t\t.")
+
         return """
-            |val ${name}Style by ComponentStyle {
-            ${modifiers.replace("|", "|\t")}
+            |val ${name}Style by ComponentStyle {$localModifiers
+            ${modifiersStr.replace("|", "|\t")}
             |}
         """.trimMargin()
     }

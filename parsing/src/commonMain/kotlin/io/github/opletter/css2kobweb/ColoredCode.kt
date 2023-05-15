@@ -8,34 +8,93 @@ class CodeBlock(val text: String, val type: CodeElement) {
     override fun toString(): String = text
 }
 
-fun css2kobwebAsCode(rawCSS: String): List<CodeBlock> {
-    val result = css2kobweb(rawCSS)
+fun css2kobwebAsCode(rawCSS: String, extractOutCommonModifiers: Boolean = true): List<CodeBlock> {
+    val result = css2kobweb(rawCSS, extractOutCommonModifiers)
 
     if (result is ParsedModifier) {
         return result.asCodeBlocks()
     }
     check(result is ParsedComponentStyles)
 
-    return result.styles.flatMap { style ->
-        val onlyBaseStyle = style.modifiers.size == 1 && style.modifiers.keys.first() == "base"
-        val extra = if (onlyBaseStyle) ".base" else ""
+    val globalModifierCode = result.styles.flatMap { style ->
+        style.modifiers.values.flatMap { it.filterModifiers<StyleModifier.Global>() }
+    }.distinctBy { it.value }.flatMap { modifier ->
+        listOf(
+            CodeBlock("private val ", CodeElement.Keyword),
+            CodeBlock("${modifier.value} = ", CodeElement.Plain),
+        ) + modifier.modifier.asCodeBlocks() + CodeBlock("\n", CodeElement.Plain)
+    }
+    val stylesCode = result.styles.flatMap { it.asCodeBlocks() }.fold(emptyList<CodeBlock>()) { acc, codeBlock ->
+        if (acc.lastOrNull()?.type == codeBlock.type) {
+            acc.dropLast(1) + CodeBlock(acc.last().text + codeBlock.text, CodeElement.Plain)
+        } else acc + codeBlock
+    }
+    return globalModifierCode + stylesCode
+}
 
-        val styleText = listOf(
-            CodeBlock("val ", CodeElement.Keyword),
-            CodeBlock("${style.name}Style", CodeElement.Property),
-            CodeBlock(" by ", CodeElement.Keyword),
-            CodeBlock("ComponentStyle$extra {\n", CodeElement.Plain)
-        )
-        val modifierText = if (onlyBaseStyle) {
-            style.modifiers["base"]!!.asCodeBlocks(indentLevel = 1) + CodeBlock("\n", CodeElement.Plain)
-        } else {
-            style.modifiers.flatMap { (selectorName, modifier) ->
-                listOf(CodeBlock("\t$selectorName {\n", CodeElement.Plain)) +
-                        modifier.asCodeBlocks(indentLevel = 2) +
-                        CodeBlock("\n\t}\n", CodeElement.Plain)
-            }
+internal fun ParsedComponentStyle.asCodeBlocks(): List<CodeBlock> {
+    val onlyBaseStyle = modifiers.size == 1 && modifiers.keys.first() == "base"
+    val extra = if (onlyBaseStyle) ".base" else ""
+
+    val styleText = listOf(
+        CodeBlock("val ", CodeElement.Keyword),
+        CodeBlock("${name}Style", CodeElement.Property),
+        CodeBlock(" by ", CodeElement.Keyword),
+        CodeBlock("ComponentStyle$extra {\n", CodeElement.Plain)
+    )
+
+    val localModifierCode = modifiers.values
+        .flatMap { it.filterModifiers<StyleModifier.Local>() }
+        .distinctBy { it.value }
+        .flatMap { modifier ->
+            val modifierText = modifier.modifier.asCodeBlocks(indentLevel = 1)
+                .let { listOf(CodeBlock("Modifier", CodeElement.Plain)) + it.drop(1) }
+            val selectorText = listOf(
+                CodeBlock("\tval ", CodeElement.Keyword),
+                CodeBlock("${modifier.value} = ", CodeElement.Plain),
+            )
+            selectorText + modifierText + CodeBlock("\n", CodeElement.Plain)
         }
-        styleText + modifierText + CodeBlock("}\n", CodeElement.Plain)
+
+    val modifierText = if (onlyBaseStyle) {
+        modifiers["base"]!!.asCodeBlocks(indentLevel = 1) + CodeBlock("\n", CodeElement.Plain)
+    } else {
+        modifiers.flatMap { (selectorName, modifier) ->
+            val selector = if (selectorName.startsWith("cssRule(")) {
+                listOf(
+                    CodeBlock("\tcssRule(", CodeElement.Plain),
+                    CodeBlock(
+                        selectorName.substringAfter("(").substringBeforeLast(")"),
+                        CodeElement.String,
+                    ),
+                    CodeBlock(") {\n", CodeElement.Plain),
+                )
+            } else listOf(CodeBlock("\t$selectorName {\n", CodeElement.Plain))
+
+            selector + modifier.asCodeBlocks(indentLevel = 2) + CodeBlock("\n\t}\n", CodeElement.Plain)
+        }
+    }
+    return styleText + localModifierCode + modifierText + CodeBlock("}\n", CodeElement.Plain)
+}
+
+internal fun StyleModifier.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> {
+    val indents = "\t".repeat(indentLevel)
+    return when (this) {
+        is StyleModifier.Global, is StyleModifier.Local -> listOf(CodeBlock(indents + value, CodeElement.Plain))
+        is StyleModifier.Inline -> parsedModifier.asCodeBlocks(indentLevel)
+        is StyleModifier.Composite -> {
+            val (inlineModifiers, sharedModifiers) = modifiers.partition { it is StyleModifier.Inline }
+            val start = sharedModifiers.firstOrNull()?.let {
+                indents + it.toString() + sharedModifiers.drop(1).joinToString("") { "\n\t$indents.then($it)" }
+            } ?: "${indents}Modifier"
+            val end = inlineModifiers.flatMap {
+                when (it) {
+                    is StyleModifier.Global, is StyleModifier.Local -> it.asCodeBlocks(indentLevel)
+                    is StyleModifier.Inline -> it.asCodeBlocks(indentLevel).drop(1)
+                }
+            }
+            listOf(CodeBlock(start, CodeElement.Plain)) + end
+        }
     }
 }
 
