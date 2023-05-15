@@ -1,5 +1,7 @@
 package io.github.opletter.css2kobweb
 
+import io.github.opletter.css2kobweb.constants.cssRules
+
 fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssParseResult {
     val cssBySelector = parseCss(rawCSS).ifEmpty { return getProperties(rawCSS) }
 

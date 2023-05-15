@@ -1,4 +1,4 @@
-package io.github.opletter.css2kobweb
+package io.github.opletter.css2kobweb.constants
 
 internal val cssRules = mapOf(
     ":any-link" to "anyLink",

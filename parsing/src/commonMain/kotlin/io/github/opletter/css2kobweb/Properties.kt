@@ -1,5 +1,6 @@
 package io.github.opletter.css2kobweb
 
+import io.github.opletter.css2kobweb.constants.colors
 import io.github.opletter.css2kobweb.functions.rgbOrNull
 import io.github.opletter.css2kobweb.functions.transition
 
