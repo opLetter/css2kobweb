@@ -84,14 +84,11 @@ internal fun StyleModifier.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> {
         is StyleModifier.Inline -> parsedModifier.asCodeBlocks(indentLevel)
         is StyleModifier.Composite -> {
             val (inlineModifiers, sharedModifiers) = modifiers.partition { it is StyleModifier.Inline }
-            val start = sharedModifiers.firstOrNull()?.let {
-                indents + it.toString() + sharedModifiers.drop(1).joinToString("") { "\n\t$indents.then($it)" }
+            val start = sharedModifiers.firstOrNull()?.let { style ->
+                indents + style.toString() + sharedModifiers.drop(1).joinToString("") { "\n\t$indents.then($it)" }
             } ?: "${indents}Modifier"
-            val end = inlineModifiers.flatMap {
-                when (it) {
-                    is StyleModifier.Global, is StyleModifier.Local -> it.asCodeBlocks(indentLevel)
-                    is StyleModifier.Inline -> it.asCodeBlocks(indentLevel).drop(1)
-                }
+            val end = inlineModifiers.flatMap { style ->
+                style.asCodeBlocks(indentLevel).let { if (style is StyleModifier.Inline) it.drop(1) else it }
             }
             listOf(CodeBlock(start, CodeElement.Plain)) + end
         }
@@ -104,7 +101,7 @@ internal fun ParsedModifier.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> 
         listOf(
             CodeBlock("\n\t$indents.", CodeElement.Plain),
             CodeBlock(it.function, CodeElement.Function),
-            CodeBlock("(", CodeElement.Plain)
+            CodeBlock("(", CodeElement.Plain),
         ) + it.args.asCodeBlocks() + CodeBlock(")", CodeElement.Plain)
     }
     return listOf(CodeBlock("${indents}Modifier", CodeElement.Plain)) + coloredModifiers
@@ -118,7 +115,7 @@ internal fun List<Arg>.asCodeBlocks(): List<CodeBlock> {
             is Arg.Property -> {
                 listOf(
                     CodeBlock(arg.className + ".", CodeElement.Plain),
-                    CodeBlock(arg.value, CodeElement.Property)
+                    CodeBlock(arg.value, CodeElement.Property),
                 )
             }
 
@@ -144,13 +141,8 @@ internal fun List<Arg>.asCodeBlocks(): List<CodeBlock> {
 
             is Arg.Function -> {
                 listOf(CodeBlock(arg.name + "(", CodeElement.Plain)) +
-                        arg.args.asCodeBlocks() +
-                        CodeBlock(")", CodeElement.Plain)
+                        arg.args.asCodeBlocks() + CodeBlock(")", CodeElement.Plain)
             }
-        }.let {
-            if (index < size - 1) {
-                it + CodeBlock(", ", CodeElement.Plain)
-            } else it
-        }
+        }.let { if (index < size - 1) it + CodeBlock(", ", CodeElement.Plain) else it }
     }
 }
