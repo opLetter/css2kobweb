@@ -17,7 +17,7 @@ class ParsedComponentStyles(val styles: List<ParsedComponentStyle>) : CssParseRe
     }
 }
 
-class ParsedProperty(val function: String, val args: List<Arg>) {
+class ParsedProperty(val function: String, val args: List<Arg> = emptyList()) {
     override fun toString(): String = "$function(${args.joinToString(", ")})"
 }
 
