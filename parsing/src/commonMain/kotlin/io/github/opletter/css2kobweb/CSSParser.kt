@@ -20,21 +20,7 @@ internal fun getProperties(str: String): ParsedModifier {
             propertyName = kebabToCamelCase(name),
             value = value.replace("\n", "").replace("  ", ""),
         )
-        kebabToCamelCase(name) to ParsedProperty(function = kebabToCamelCase(name), args = args)
-    }.let { properties ->
-        val width = properties["width"]?.args
-        val height = properties["height"]?.args
-        if (width != null && width.toString() == height.toString()) {
-            properties.filterKeys { it != "width" && it != "height" } +
-                    ("size" to ParsedProperty(function = "size", args = width))
-        } else properties
-    }.values.map {
-        if (it.function == "width" && it.args.first().toString() == Arg.UnitNum(100, "percent").toString()) {
-            ParsedProperty(function = "fillMaxWidth", args = emptyList())
-        } else if (it.function == "height" && it.args.first().toString() == Arg.UnitNum(100, "percent").toString()) {
-            ParsedProperty(function = "fillMaxHeight", args = emptyList())
-        } else if (it.function == "size" && it.args.first().toString() == Arg.UnitNum(100, "percent").toString()) {
-            ParsedProperty(function = "fillMaxSize", args = emptyList())
-        } else it
-    }.let { ParsedModifier(it) }
+        val function = kebabToCamelCase(name)
+        function to ParsedProperty(function, args)
+    }.postProcessProperties().let { ParsedModifier(it) }
 }
