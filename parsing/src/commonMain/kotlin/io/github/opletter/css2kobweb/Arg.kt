@@ -16,8 +16,8 @@ sealed class Arg(private val value: String) {
         Arg("${if (value.toDouble() < 0.0) "($value)" else "$value"}.$type"), CalcNumber {
 
         companion object {
-            fun ofOrNull(str: String): UnitNum? {
-                if (str == "0") return UnitNum(0, "px")
+            fun ofOrNull(str: String, zeroUnit: String = "px"): UnitNum? {
+                if (str == "0") return UnitNum(0, zeroUnit)
 
                 val potentialUnit = str.dropWhile { it.isDigit() || it == '.' || it == '-' || it == '+' }
                 val unit = units[potentialUnit]
@@ -28,8 +28,8 @@ sealed class Arg(private val value: String) {
                 return null
             }
 
-            fun of(str: String): UnitNum {
-                return ofOrNull(str) ?: throw IllegalArgumentException("Not a unit number: $str")
+            fun of(str: String, zeroUnit: String = "px"): UnitNum {
+                return ofOrNull(str, zeroUnit) ?: throw IllegalArgumentException("Not a unit number: $str")
             }
         }
     }
@@ -48,7 +48,15 @@ sealed class Arg(private val value: String) {
 
     class NamedArg(val name: String, val value: Arg) : Arg("$name = $value")
 
-    class Function(val name: String, val args: List<Arg>) : Arg("$name(${args.joinToString(", ")})") {
+    class Function(val name: String, val args: List<Arg>, val lambdaStatements: List<Function> = emptyList()) :
+        Arg(
+            if (lambdaStatements.isEmpty()) "$name(${args.joinToString(", ")})"
+            else {
+                val argsStr = if (args.isEmpty()) "" else args.joinToString(", ", prefix = "(", postfix = ")")
+                val lambdaStr = lambdaStatements.joinToString("\n\t\t", prefix = " {\n\t\t", postfix = "\n\t}")
+                name + argsStr + lambdaStr
+            }
+        ) {
         internal companion object // for extensions
     }
 

@@ -102,12 +102,12 @@ internal fun ParsedModifier.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> 
             CodeBlock("\n\t$indents.", CodeElement.Plain),
             CodeBlock(it.function, CodeElement.Function),
             CodeBlock("(", CodeElement.Plain),
-        ) + it.args.asCodeBlocks() + CodeBlock(")", CodeElement.Plain)
+        ) + it.args.asCodeBlocks(indentLevel) + CodeBlock(")", CodeElement.Plain)
     }
     return listOf(CodeBlock("${indents}Modifier", CodeElement.Plain)) + coloredModifiers
 }
 
-internal fun List<Arg>.asCodeBlocks(): List<CodeBlock> {
+internal fun List<Arg>.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> {
     return flatMapIndexed { index, arg ->
         when (arg) {
             is Arg.Literal -> listOf(CodeBlock(arg.value, CodeElement.String))
@@ -145,8 +145,22 @@ internal fun List<Arg>.asCodeBlocks(): List<CodeBlock> {
             }
 
             is Arg.Function -> {
-                listOf(CodeBlock(arg.name + "(", CodeElement.Plain)) +
-                        arg.args.asCodeBlocks() + CodeBlock(")", CodeElement.Plain)
+                buildList {
+                    val indents = "\t".repeat(indentLevel + 1)
+                    add(CodeBlock(if (arg.args.isEmpty()) arg.name else "${arg.name}(", CodeElement.Plain))
+                    addAll(arg.args.asCodeBlocks())
+                    if (arg.args.isNotEmpty()) {
+                        add(CodeBlock(")", CodeElement.Plain))
+                    }
+                    if (arg.lambdaStatements.isNotEmpty()) {
+                        add(CodeBlock(" {", CodeElement.Plain))
+                        val lambdaLines = arg.lambdaStatements.flatMap {
+                            listOf(CodeBlock("\n\t$indents", CodeElement.Plain)) + listOf(it).asCodeBlocks()
+                        }
+                        addAll(lambdaLines)
+                        add(CodeBlock("\n$indents}", CodeElement.Plain))
+                    }
+                }
             }
         }.let { if (index < size - 1) it + CodeBlock(", ", CodeElement.Plain) else it }
     }

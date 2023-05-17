@@ -6,7 +6,7 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
     val cssBySelector = parseCss(rawCSS).ifEmpty { return getProperties(rawCSS) }
 
     val modifiersBySelector = cssBySelector.flatMapIndexed { index, (selectors, modifier) ->
-        val allSelectors = selectors.splitByComma()
+        val allSelectors = selectors.splitNotInParens(',')
 
         allSelectors.associateWith { _ ->
             if (extractOutCommonModifiers && allSelectors.distinctBy { it.baseName() }.size != 1) {
@@ -26,7 +26,7 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
         }
     }.toMap()
 
-    val styles = cssBySelector.flatMap { it.first.splitByComma() }.groupBy { it.baseName() }
+    val styles = cssBySelector.flatMap { it.first.splitNotInParens(',') }.groupBy { it.baseName() }
     val parsedStyles = styles.map { (baseName, selectors) ->
         val modifiers = selectors.associate { selector ->
             val cleanedUpName = if (selector == baseName) "base"
@@ -41,6 +41,10 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
     return ParsedComponentStyles(parsedStyles)
 }
 
-// ignores commas in parentheses
-private fun String.splitByComma() = split(",(?![^()]*\\))".toRegex()).map { it.trim() }.filter { it.isNotBlank() }
 private fun String.baseName() = substringBefore(":").substringBefore(" ")
+
+// ignores commas in parentheses
+fun String.splitNotInParens(char: Char): List<String> {
+    val adjustedChar = if (char == ' ') "\\s" else char
+    return split("$adjustedChar(?![^()]*\\))".toRegex()).map { it.trim() }.filter { it.isNotBlank() }
+}
