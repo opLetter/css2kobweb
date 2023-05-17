@@ -4,10 +4,6 @@ import io.github.opletter.css2kobweb.Arg
 import io.github.opletter.css2kobweb.kebabToPascalCase
 
 internal fun Arg.Function.Companion.transition(transition: String): Arg.Function {
-    fun transitionOf(vararg args: Arg): Arg.Function {
-        return Arg.Function("CSSTransition", args.toList())
-    }
-
     val params = transition.split(" ").filter { it.isNotBlank() }
     val firstParams = listOf(Arg.Literal("\"${params[0]}\""), Arg.UnitNum.of(params[1])).toTypedArray()
 
@@ -39,3 +35,5 @@ internal fun Arg.Function.Companion.transition(transition: String): Arg.Function
         else -> error("Invalid transition: $transition")
     }
 }
+
+private fun transitionOf(vararg args: Arg): Arg.Function = Arg.Function("CSSTransition", args.toList())
