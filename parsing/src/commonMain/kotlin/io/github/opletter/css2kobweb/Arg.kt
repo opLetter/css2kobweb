@@ -17,6 +17,8 @@ sealed class Arg(private val value: String) {
 
         companion object {
             fun ofOrNull(str: String): UnitNum? {
+                if (str == "0") return UnitNum(0, "px")
+
                 val potentialUnit = str.dropWhile { it.isDigit() || it == '.' || it == '-' || it == '+' }
                 val unit = units[potentialUnit]
                 if (unit != null) {

@@ -51,8 +51,9 @@ internal fun parseValue(propertyName: String, value: String): List<Arg> {
     }
 
     return splitString(value).map { prop ->
-        if (prop == "0") {
-            return@map Arg.UnitNum(0, "px")
+        val unit = Arg.UnitNum.ofOrNull(prop)
+        if (unit != null) {
+            return@map unit
         }
 
         val rawNum = prop.toIntOrNull() ?: prop.toDoubleOrNull()
@@ -74,11 +75,6 @@ internal fun parseValue(propertyName: String, value: String): List<Arg> {
                 Arg.UnitNum.ofOrNull(arg2) ?: Arg.RawNumber(arg2.toIntOrNull() ?: arg2.toDouble()),
                 expr[indexOfOperator],
             )
-        }
-
-        val unit = Arg.UnitNum.ofOrNull(prop)
-        if (unit != null) {
-            return@map unit
         }
 
         if (prop.startsWith('"') || prop.startsWith("'")) {
