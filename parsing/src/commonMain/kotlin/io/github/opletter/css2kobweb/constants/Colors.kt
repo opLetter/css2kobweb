@@ -1,6 +1,7 @@
 package io.github.opletter.css2kobweb.constants
 
 internal val colors = listOf(
+    "Transparent",
     "AliceBlue",
     "AntiqueWhite",
     "Aqua",
