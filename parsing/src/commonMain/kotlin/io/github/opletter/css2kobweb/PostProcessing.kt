@@ -57,6 +57,6 @@ private fun Map<String, ParsedProperty>.combineDirectionalModifiers(
     ).filter { it.toString() != "0px" }.ifEmpty { return this }
 
     return filterKeys { key ->
-        directions.none { key == "$property$it" }
+        directions.none { key == getPropertyByDirection(it) }
     } + (property to ParsedProperty(property, finalArgs))
 }
