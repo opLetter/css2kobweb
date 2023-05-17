@@ -15,8 +15,8 @@ internal fun kebabToCamelCase(str: String): String {
 }
 
 internal data class ParseState(
-    val inQuotes: Boolean = false,
-    val inParentheses: Boolean = false,
+    val quotesCount: Int = 0,
+    val parensCount: Int = 0,
     val buffer: String = "",
     val result: List<String> = emptyList(),
 )
@@ -27,11 +27,11 @@ internal tailrec fun splitString(input: String, state: ParseState = ParseState()
         return if (state.buffer.isNotEmpty()) state.result + state.buffer else state.result
     }
     val nextState = when (val ch = input.first()) {
-        '"' -> state.copy(inQuotes = !state.inQuotes, buffer = state.buffer + ch)
-        '(' -> state.copy(inParentheses = true, buffer = state.buffer + ch)
-        ')' -> state.copy(inParentheses = false, buffer = state.buffer + ch)
+        '"' -> state.copy(quotesCount = state.quotesCount + 1, buffer = state.buffer + ch)
+        '(' -> state.copy(parensCount = state.parensCount + 1, buffer = state.buffer + ch)
+        ')' -> state.copy(parensCount = state.parensCount - 1, buffer = state.buffer + ch)
         ' ', ',' -> {
-            if (state.inQuotes || state.inParentheses) {
+            if (state.quotesCount % 2 == 1 || state.parensCount != 0) {
                 state.copy(buffer = state.buffer + ch)
             } else {
                 if (state.buffer.isNotEmpty()) {
