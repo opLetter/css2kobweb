@@ -18,7 +18,7 @@ internal fun getProperties(str: String): ParsedModifier {
         val (name, value) = prop.split(":").map { it.trim() } + "" // use empty if not present
         val args = parseValue(
             propertyName = kebabToCamelCase(name),
-            value = value.replace("\n", "").replace("  ", ""),
+            value = value.lines().joinToString("") { it.trim() },
         )
         val function = kebabToCamelCase(name)
         function to ParsedProperty(function, args)
