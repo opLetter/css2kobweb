@@ -53,4 +53,6 @@ sealed class Arg(private val value: String) {
     override fun toString(): String = value
     override fun hashCode(): Int = value.hashCode()
     override fun equals(other: Any?): Boolean = other is Arg && other.value == value
+
+    internal companion object // for extensions
 }

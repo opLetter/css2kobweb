@@ -1,13 +1,10 @@
 package io.github.opletter.css2kobweb.functions
 
 import io.github.opletter.css2kobweb.Arg
+import io.github.opletter.css2kobweb.constants.colors
 import kotlin.math.roundToInt
 
-internal fun Arg.Function.Companion.rgbOrNull(prop: String): Arg.Function? {
-    if (prop.startsWith("#")) {
-        return Arg.Function("Color.rgb", listOf(Arg.Hex(prop.drop(1))))
-    }
-
+private fun rgbOrNull(prop: String): Arg.Function? {
     val nums = prop.substringAfter("(").substringBefore(")")
         .split(' ', ',', '/')
         .filter { it.isNotBlank() }
@@ -26,6 +23,20 @@ internal fun Arg.Function.Companion.rgbOrNull(prop: String): Arg.Function? {
             else Arg.Float(it.toFloat())
         }
         return Arg.Function("Color.rgba", params.take(3) + alpha)
+    }
+    return null
+}
+
+internal fun Arg.Companion.asColorOrNull(value: String): Arg? {
+    if (value.startsWith("#")) {
+        return Arg.Function("Color.rgb", listOf(Arg.Hex(value.drop(1))))
+    }
+    val color = colors.firstOrNull { it.lowercase() == value }
+    if (color != null) {
+        return Arg.Property("Colors", color)
+    }
+    if (value.startsWith("rgb") && value.endsWith(")")) {
+        return rgbOrNull(value)
     }
     return null
 }

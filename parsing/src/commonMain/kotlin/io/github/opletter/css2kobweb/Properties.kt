@@ -1,7 +1,6 @@
 package io.github.opletter.css2kobweb
 
-import io.github.opletter.css2kobweb.constants.colors
-import io.github.opletter.css2kobweb.functions.rgbOrNull
+import io.github.opletter.css2kobweb.functions.asColorOrNull
 import io.github.opletter.css2kobweb.functions.transition
 
 internal fun kebabToPascalCase(str: String): String {
@@ -61,9 +60,7 @@ internal fun parseValue(propertyName: String, value: String): List<Arg> {
             return@map Arg.RawNumber(rawNum)
         }
 
-        if (prop.startsWith('#') || prop.startsWith("rgb")) {
-            Arg.Function.rgbOrNull(prop)?.let { return@map it }
-        }
+        Arg.asColorOrNull(prop)?.let { return@map it }
 
         if (prop.startsWith("calc(")) {
             val expr = prop.substringAfter("(").substringBeforeLast(")").trim()
@@ -86,11 +83,6 @@ internal fun parseValue(propertyName: String, value: String): List<Arg> {
 
         if (prop.startsWith('"') || prop.startsWith("'")) {
             return@map Arg.Literal(prop.replace("'", "\""))
-        }
-
-        val color = colors.firstOrNull { it.lowercase() == prop }
-        if (color != null) {
-            return@map Arg.Property("Colors", color)
         }
 
         val className = when (propertyName) {
