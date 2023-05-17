@@ -135,6 +135,11 @@ internal fun List<Arg>.asCodeBlocks(): List<CodeBlock> {
                 )
             }
 
+            is Arg.Calc -> {
+                listOf(arg.arg1.arg).asCodeBlocks() + CodeBlock(" ${arg.operation} ", CodeElement.Plain) +
+                        listOf(arg.arg2.arg).asCodeBlocks()
+            }
+
             is Arg.NamedArg -> {
                 listOf(CodeBlock(arg.name + " = ", CodeElement.NamedArg)) + listOf(arg.value).asCodeBlocks()
             }

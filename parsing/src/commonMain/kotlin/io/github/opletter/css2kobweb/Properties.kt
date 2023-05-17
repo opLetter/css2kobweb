@@ -65,6 +65,20 @@ internal fun parseValue(propertyName: String, value: String): List<Arg> {
             Arg.Function.rgbOrNull(prop)?.let { return@map it }
         }
 
+        if (prop.startsWith("calc(")) {
+            val expr = prop.substringAfter("(").substringBeforeLast(")").trim()
+            val indexOfOperator = expr.indexOfAny(charArrayOf('*', '/')).takeIf { it != -1 }
+                ?: (expr.substringAfter(' ').indexOfAny(charArrayOf('+', '-')) + expr.indexOf(' ') + 1)
+
+            val arg1 = expr.take(indexOfOperator).trim()
+            val arg2 = expr.drop(indexOfOperator + 1).trim()
+            return@map Arg.Calc(
+                Arg.UnitNum.ofOrNull(arg1) ?: Arg.RawNumber(arg1.toIntOrNull() ?: arg1.toDouble()),
+                Arg.UnitNum.ofOrNull(arg2) ?: Arg.RawNumber(arg2.toIntOrNull() ?: arg2.toDouble()),
+                expr[indexOfOperator],
+            )
+        }
+
         val unit = Arg.UnitNum.ofOrNull(prop)
         if (unit != null) {
             return@map unit
