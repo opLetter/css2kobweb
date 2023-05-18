@@ -45,10 +45,22 @@ internal tailrec fun splitString(input: String, state: ParseState = ParseState()
     return splitString(input.drop(1), nextState)
 }
 
-internal fun parseValue(propertyName: String, value: String): List<Arg> {
+internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     if (propertyName == "transition") {
         val transitions = value.split(",", ", ").filter { it.isNotBlank() }
-        return transitions.map { Arg.Function.transition(it) }
+        return ParsedProperty(propertyName, transitions.map { Arg.Function.transition(it) })
+    }
+    if (propertyName == "transform") {
+        val statements = value.splitNotInParens(' ').map { func ->
+            val args = splitString(func.substringAfter('(').substringBeforeLast(')')).map {
+                if (it.toDoubleOrNull() == 0.0 && (it.startsWith("matrix") || it.startsWith("scale")))
+                    Arg.RawNumber(0)
+                else
+                    Arg.UnitNum.ofOrNull(it) ?: Arg.RawNumber(it.toIntOrNull() ?: it.toDouble())
+            }
+            Arg.Function(func.substringBefore('('), args)
+        }
+        return ParsedProperty("transform", lambdaStatements = statements)
     }
 
     return splitString(value).map { prop ->
@@ -106,10 +118,10 @@ internal fun parseValue(propertyName: String, value: String): List<Arg> {
         if (prop.endsWith(")")) {
             return@map Arg.Function(
                 "$className.${kebabToCamelCase(prop.substringBefore("("))}",
-                parseValue(propertyName, prop.substringAfter("(").substringBeforeLast(")"))
+                parseValue(propertyName, prop.substringAfter("(").substringBeforeLast(")")).args
             )
         }
 
         Arg.Property(className, kebabToPascalCase(prop))
-    }
+    }.let { ParsedProperty(propertyName, it) }
 }

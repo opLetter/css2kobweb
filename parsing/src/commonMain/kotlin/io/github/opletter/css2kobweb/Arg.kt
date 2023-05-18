@@ -48,7 +48,11 @@ sealed class Arg(private val value: String) {
 
     class NamedArg(val name: String, val value: Arg) : Arg("$name = $value")
 
-    class Function(val name: String, val args: List<Arg>, val lambdaStatements: List<Function> = emptyList()) :
+    class Function(
+        val name: String,
+        val args: List<Arg> = emptyList(),
+        val lambdaStatements: List<Function> = emptyList(),
+    ) :
         Arg(
             if (lambdaStatements.isEmpty()) "$name(${args.joinToString(", ")})"
             else {

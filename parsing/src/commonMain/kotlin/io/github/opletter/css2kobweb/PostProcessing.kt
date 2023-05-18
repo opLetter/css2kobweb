@@ -12,11 +12,11 @@ internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedPro
         .combineDirectionalModifiers("padding")
         .combineDirectionalModifiers("borderWidth") { "border${it}Width" }
         .values.map {
-            if (it.function == "width" && it.args.single() == Arg.UnitNum.of("100%")) {
+            if (it.name == "width" && it.args.single() == Arg.UnitNum.of("100%")) {
                 ParsedProperty("fillMaxWidth")
-            } else if (it.function == "height" && it.args.single() == Arg.UnitNum.of("100%")) {
+            } else if (it.name == "height" && it.args.single() == Arg.UnitNum.of("100%")) {
                 ParsedProperty("fillMaxHeight")
-            } else if (it.function == "size" && it.args.single() == Arg.UnitNum.of("100%")) {
+            } else if (it.name == "size" && it.args.single() == Arg.UnitNum.of("100%")) {
                 ParsedProperty("fillMaxSize")
             } else it
         }

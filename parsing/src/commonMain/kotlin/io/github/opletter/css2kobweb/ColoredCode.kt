@@ -98,16 +98,16 @@ internal fun StyleModifier.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> {
 internal fun ParsedModifier.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> {
     val indents = "\t".repeat(indentLevel)
     val coloredModifiers = properties.flatMap {
-        listOf(
-            CodeBlock("\n\t$indents.", CodeElement.Plain),
-            CodeBlock(it.function, CodeElement.Function),
-            CodeBlock("(", CodeElement.Plain),
-        ) + it.args.asCodeBlocks(indentLevel) + CodeBlock(")", CodeElement.Plain)
+        listOf(CodeBlock("\n\t$indents.", CodeElement.Plain)) +
+                listOf(it).asCodeBlocks(indentLevel, functionType = CodeElement.Function)
     }
     return listOf(CodeBlock("${indents}Modifier", CodeElement.Plain)) + coloredModifiers
 }
 
-internal fun List<Arg>.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> {
+internal fun List<Arg>.asCodeBlocks(
+    indentLevel: Int,
+    functionType: CodeElement = CodeElement.Plain,
+): List<CodeBlock> {
     return flatMapIndexed { index, arg ->
         when (arg) {
             is Arg.Literal -> listOf(CodeBlock(arg.value, CodeElement.String))
@@ -136,26 +136,27 @@ internal fun List<Arg>.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> {
             }
 
             is Arg.Calc -> {
-                listOf(arg.arg1.arg).asCodeBlocks() + CodeBlock(" ${arg.operation} ", CodeElement.Plain) +
-                        listOf(arg.arg2.arg).asCodeBlocks()
+                listOf(arg.arg1.arg).asCodeBlocks(indentLevel) + CodeBlock(" ${arg.operation} ", CodeElement.Plain) +
+                        listOf(arg.arg2.arg).asCodeBlocks(indentLevel)
             }
 
             is Arg.NamedArg -> {
-                listOf(CodeBlock(arg.name + " = ", CodeElement.NamedArg)) + listOf(arg.value).asCodeBlocks()
+                listOf(CodeBlock(arg.name + " = ", CodeElement.NamedArg)) + listOf(arg.value).asCodeBlocks(indentLevel)
             }
 
             is Arg.Function -> {
                 buildList {
                     val indents = "\t".repeat(indentLevel + 1)
-                    add(CodeBlock(if (arg.args.isEmpty()) arg.name else "${arg.name}(", CodeElement.Plain))
-                    addAll(arg.args.asCodeBlocks())
+                    add(CodeBlock(arg.name, functionType))
                     if (arg.args.isNotEmpty()) {
+                        add(CodeBlock("(", CodeElement.Plain))
+                        addAll(arg.args.asCodeBlocks(indentLevel))
                         add(CodeBlock(")", CodeElement.Plain))
                     }
                     if (arg.lambdaStatements.isNotEmpty()) {
                         add(CodeBlock(" {", CodeElement.Plain))
                         val lambdaLines = arg.lambdaStatements.flatMap {
-                            listOf(CodeBlock("\n\t$indents", CodeElement.Plain)) + listOf(it).asCodeBlocks()
+                            listOf(CodeBlock("\n\t$indents", CodeElement.Plain)) + listOf(it).asCodeBlocks(indentLevel)
                         }
                         addAll(lambdaLines)
                         add(CodeBlock("\n$indents}", CodeElement.Plain))
