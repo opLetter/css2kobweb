@@ -54,7 +54,14 @@ internal fun parseValue(propertyName: String, value: String): List<Arg> {
     return splitString(value).map { prop ->
         val unit = Arg.UnitNum.ofOrNull(prop)
         if (unit != null) {
-            return@map unit
+            val takeRawZero = setOf(
+                "zIndex", "opacity", "lineHeight", "flexGrow", "flexShrink", "flex", "order", "tabIndex",
+                "gridColumnEnd", "gridColumnStart", "gridRowEnd", "gridRowStart",
+            )
+
+            return@map if (unit.toString().substringBeforeLast('.') == "0" && propertyName in takeRawZero)
+                Arg.RawNumber(0)
+            else unit
         }
 
         val rawNum = prop.toIntOrNull() ?: prop.toDoubleOrNull()
