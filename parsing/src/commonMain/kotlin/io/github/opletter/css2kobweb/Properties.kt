@@ -95,6 +95,11 @@ internal fun parseValue(propertyName: String, value: String): List<Arg> {
 
         val className = when (propertyName) {
             "display" -> "DisplayStyle"
+
+            "border", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight",
+            "outline", "outlineStyle",
+            -> "LineStyle"
+
             else -> propertyName.replaceFirstChar { it.uppercase() }
         }
 
