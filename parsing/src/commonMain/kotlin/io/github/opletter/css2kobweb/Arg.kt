@@ -52,15 +52,14 @@ sealed class Arg(private val value: String) {
         val name: String,
         val args: List<Arg> = emptyList(),
         val lambdaStatements: List<Function> = emptyList(),
-    ) :
-        Arg(
-            if (lambdaStatements.isEmpty()) "$name(${args.joinToString(", ")})"
-            else {
-                val argsStr = if (args.isEmpty()) "" else args.joinToString(", ", prefix = "(", postfix = ")")
-                val lambdaStr = lambdaStatements.joinToString("\n\t\t", prefix = " {\n\t\t", postfix = "\n\t}")
-                name + argsStr + lambdaStr
-            }
-        ) {
+    ) : Arg(
+        if (lambdaStatements.isEmpty()) "$name(${args.joinToString(", ")})"
+        else {
+            val argsStr = if (args.isEmpty()) "" else args.joinToString(", ", prefix = "(", postfix = ")")
+            val lambdaStr = lambdaStatements.joinToString("\n\t\t", prefix = " {\n\t\t", postfix = "\n\t}")
+            name + argsStr + lambdaStr
+        }
+    ) {
         internal companion object // for extensions
     }
 

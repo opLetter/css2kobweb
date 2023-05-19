@@ -139,28 +139,26 @@ internal fun Arg.asCodeBlocks(
 
         is Arg.NamedArg -> listOf(CodeBlock("$name = ", CodeElement.NamedArg)) + value.asCodeBlocks(indentLevel)
 
-        is Arg.Function -> {
-            buildList {
-                val indents = "\t".repeat(indentLevel + 1)
-                add(CodeBlock(name, functionType))
-                if (args.isNotEmpty() || lambdaStatements.isEmpty()) {
-                    add(CodeBlock("(", CodeElement.Plain))
-                    addAll(args.flatMapIndexed { index, arg ->
-                        val argBlocks = arg.asCodeBlocks(indentLevel)
-                        if (index < args.size - 1) {
-                            argBlocks + CodeBlock(", ", CodeElement.Plain)
-                        } else argBlocks
-                    })
-                    add(CodeBlock(")", CodeElement.Plain))
+        is Arg.Function -> buildList {
+            val indents = "\t".repeat(indentLevel + 1)
+            add(CodeBlock(name, functionType))
+            if (args.isNotEmpty() || lambdaStatements.isEmpty()) {
+                add(CodeBlock("(", CodeElement.Plain))
+                addAll(args.flatMapIndexed { index, arg ->
+                    val argBlocks = arg.asCodeBlocks(indentLevel)
+                    if (index < args.size - 1) {
+                        argBlocks + CodeBlock(", ", CodeElement.Plain)
+                    } else argBlocks
+                })
+                add(CodeBlock(")", CodeElement.Plain))
+            }
+            if (lambdaStatements.isNotEmpty()) {
+                add(CodeBlock(" {", CodeElement.Plain))
+                val lambdaLines = lambdaStatements.flatMap {
+                    listOf(CodeBlock("\n\t$indents", CodeElement.Plain)) + it.asCodeBlocks(indentLevel)
                 }
-                if (lambdaStatements.isNotEmpty()) {
-                    add(CodeBlock(" {", CodeElement.Plain))
-                    val lambdaLines = lambdaStatements.flatMap {
-                        listOf(CodeBlock("\n\t$indents", CodeElement.Plain)) + it.asCodeBlocks(indentLevel)
-                    }
-                    addAll(lambdaLines)
-                    add(CodeBlock("\n$indents}", CodeElement.Plain))
-                }
+                addAll(lambdaLines)
+                add(CodeBlock("\n$indents}", CodeElement.Plain))
             }
         }
     }
