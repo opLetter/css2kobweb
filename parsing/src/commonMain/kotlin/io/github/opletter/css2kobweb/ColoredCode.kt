@@ -1,7 +1,7 @@
 package io.github.opletter.css2kobweb
 
 enum class CodeElement {
-    Plain, Keyword, Property, Function, String, Number, NamedArg
+    Plain, Keyword, Property, ExtensionFun, String, Number, NamedArg
 }
 
 class CodeBlock(val text: String, val type: CodeElement) {
@@ -99,7 +99,7 @@ internal fun ParsedModifier.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> 
     val indents = "\t".repeat(indentLevel)
     val coloredModifiers = properties.flatMap {
         listOf(CodeBlock("\n\t$indents.", CodeElement.Plain)) +
-                it.asCodeBlocks(indentLevel, functionType = CodeElement.Function)
+                it.asCodeBlocks(indentLevel, functionType = CodeElement.ExtensionFun)
     }
     return listOf(CodeBlock("${indents}Modifier", CodeElement.Plain)) + coloredModifiers
 }

@@ -32,7 +32,7 @@ private fun HighlightedCode(text: CodeBlock) {
     when (text.type) {
         CodeElement.Keyword -> ColorScheme.keyword
         CodeElement.Property -> ColorScheme.property
-        CodeElement.Function -> ColorScheme.function
+        CodeElement.ExtensionFun -> ColorScheme.function
         CodeElement.String -> ColorScheme.string
         CodeElement.Number -> ColorScheme.number
         CodeElement.NamedArg -> ColorScheme.namedArg
