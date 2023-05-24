@@ -52,7 +52,7 @@ private fun Map<String, ParsedProperty>.combineDirectionalModifiers(
         if ("leftRight" in this)
             replaceIfEqual(setOf("top", "bottom"), "topBottom")
         replaceIfEqual(setOf("leftRight", "topBottom"), "all")
-    }
+    }.ifEmpty { return this }
 
     val finalArgs = listOfNotNull(
         processedArgs["top"],
@@ -62,9 +62,8 @@ private fun Map<String, ParsedProperty>.combineDirectionalModifiers(
         processedArgs["bottom"],
         processedArgs["left"],
         processedArgs["all"]?.value,
-    ).filter { it.toString() != "0px" }.ifEmpty { return this }
+    )
 
-    return filterKeys { key ->
-        directions.none { key == getPropertyByDirection(it) }
-    } + (property to ParsedProperty(property, finalArgs))
+    return minus(directions.map { getPropertyByDirection(it) }.toSet()) +
+            (property to ParsedProperty(property, finalArgs))
 }
