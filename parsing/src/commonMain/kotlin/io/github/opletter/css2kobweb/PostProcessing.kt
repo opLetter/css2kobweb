@@ -2,13 +2,10 @@ package io.github.opletter.css2kobweb
 
 
 internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedProperty> {
-    return run {
-        val width = this["width"]?.args
-        val height = this["height"]?.args
-        if (width != null && width == height) {
-            filterKeys { it != "width" && it != "height" } + ("size" to ParsedProperty("size", width))
-        } else this
-    }.combineDirectionalModifiers("margin")
+    return replaceKeysIfEqual(setOf("width", "height"), "size")
+        .replaceKeysIfEqual(setOf("minWidth", "minHeight"), "minSize")
+        .replaceKeysIfEqual(setOf("maxWidth", "maxHeight"), "maxSize")
+        .combineDirectionalModifiers("margin")
         .combineDirectionalModifiers("padding")
         .combineDirectionalModifiers("borderWidth") { "border${it}Width" }
         .values.map {
@@ -22,10 +19,21 @@ internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedPro
         }
 }
 
+private fun Map<String, ParsedProperty>.replaceKeysIfEqual(
+    keysToReplace: Set<String>,
+    newKey: String,
+): Map<String, ParsedProperty> {
+    val values = keysToReplace.mapNotNull { get(it)?.args }
+    return if (values.size == keysToReplace.size && values.toSet().size == 1) {
+        minus(keysToReplace) + (newKey to ParsedProperty(newKey, values.first()))
+    } else this
+}
+
 private fun Map<String, ParsedProperty>.combineDirectionalModifiers(
     property: String,
     getPropertyByDirection: (direction: String) -> String = { "$property$it" },
 ): Map<String, ParsedProperty> {
+    // consider whether this should be combined with the above replaceKeysIfEqual function
     fun MutableMap<String, Arg.NamedArg>.replaceIfEqual(keysToReplace: Set<String>, newKey: String) {
         val values = keysToReplace.mapNotNull { get(it)?.value }
         if (values.size == keysToReplace.size && values.toSet().size == 1) {
