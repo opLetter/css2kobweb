@@ -101,8 +101,8 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
             )
         }
 
-        if (prop.startsWith('"') || prop.startsWith("'")) {
-            return@map Arg.Literal(prop.replace("'", "\""))
+        if (prop.startsWith('"')) {
+            return@map Arg.Literal(prop)
         }
 
         val className = when (propertyName) {
