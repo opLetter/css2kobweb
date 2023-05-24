@@ -1,10 +1,11 @@
 package io.github.opletter.css2kobweb
 
-// this function was partially created by ChatGPT
 internal fun parseCss(css: String): List<Pair<String, ParsedModifier>> {
+    val cssWithoutComments = css.replace("/\\*.*?\\*/".toRegex(), "")
+
     @Suppress("RegExpRedundantEscape") // redundancy needed for JS
     val regex = "([^{}]+)\\s*\\{\\s*([^{}]+)\\s*\\}".toRegex()
-    val matches = regex.findAll(css.replace('\'', '"'))
+    val matches = regex.findAll(cssWithoutComments.replace('\'', '"'))
     return matches.toList().map { matchResult ->
         val selector = matchResult.groupValues[1].trim()
         val properties = getProperties(matchResult.groupValues[2])
