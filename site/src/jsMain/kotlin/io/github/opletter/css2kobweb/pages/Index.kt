@@ -1,109 +1,125 @@
 package io.github.opletter.css2kobweb.pages
 
+//import kotlinx.browser.window
 import androidx.compose.runtime.*
 import com.varabyte.kobweb.compose.css.Overflow
 import com.varabyte.kobweb.compose.css.Resize
-import com.varabyte.kobweb.compose.foundation.layout.Arrangement
-import com.varabyte.kobweb.compose.foundation.layout.Box
 import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.foundation.layout.Row
-import com.varabyte.kobweb.compose.ui.*
+import com.varabyte.kobweb.compose.ui.Alignment
+import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.graphics.Color
+import com.varabyte.kobweb.compose.ui.graphics.Colors
 import com.varabyte.kobweb.compose.ui.modifiers.*
+import com.varabyte.kobweb.compose.ui.styleModifier
+import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.silk.components.forms.Button
-import com.varabyte.kobweb.silk.components.text.SpanText
+import com.varabyte.kobweb.silk.components.style.ComponentStyle
+import com.varabyte.kobweb.silk.components.style.base
+import com.varabyte.kobweb.silk.components.style.toAttrs
+import com.varabyte.kobweb.silk.components.style.toModifier
+import com.varabyte.kobweb.silk.theme.toSilkPalette
 import io.github.opletter.css2kobweb.CodeBlock
 import io.github.opletter.css2kobweb.components.widgets.KotlinCode
 import io.github.opletter.css2kobweb.css2kobwebAsCode
-import org.jetbrains.compose.web.attributes.placeholder
-import org.jetbrains.compose.web.css.Position
-import org.jetbrains.compose.web.css.cssRem
-import org.jetbrains.compose.web.css.percent
-import org.jetbrains.compose.web.css.px
-import org.jetbrains.compose.web.dom.CheckboxInput
-import org.jetbrains.compose.web.dom.Label
-import org.jetbrains.compose.web.dom.Text
-import org.jetbrains.compose.web.dom.TextArea
+import kotlinx.browser.window
+import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.dom.*
 
-object ColorScheme {
-    val background = Color.rgb(0x1E1F22)
-    val color = Color.rgb(0xBCBEC4)
-    val keyword = Color.rgb(0xcF8E6D)
-    val property = Color.rgb(0xC77DBB)
-    val function = Color.rgb(0x56A8F5)
-    val string = Color.rgb(0x6AAB73)
-    val number = Color.rgb(0x2AACB8)
-    val namedArg = Color.rgb(0x56C1D6)
+val TextAreaStyle by ComponentStyle.base {
+    Modifier
+        .fillMaxSize()
+        .padding(topBottom = 0.5.cssRem, leftRight = 1.cssRem)
+        .borderRadius(bottomLeft = 8.px, bottomRight = 8.px)
+        .resize(Resize.None)
+        .overflow(Overflow.Auto)
+        .styleModifier { property("tab-size", 4) }
+        .backgroundColor(colorMode.toSilkPalette().color)
+        .color(colorMode.toSilkPalette().background)
+}
+
+val TextAreaLabelStyle by ComponentStyle.base {
+    Modifier
+        .fillMaxWidth()
+        .backgroundColor(Colors.Black)
+        .padding(topBottom = 0.5.cssRem, leftRight = 1.cssRem)
+        .color(Color.rgb(0x8bdbe2))
+        .borderRadius(topLeft = 8.px, topRight = 8.px)
 }
 
 @Page
 @Composable
 fun HomePage() {
-    var textValue by remember { mutableStateOf("") }
+    var cssInput by remember { mutableStateOf("") }
     var outputCode: List<CodeBlock> by remember { mutableStateOf(emptyList()) }
 
-    var syntaxHighlight by remember { mutableStateOf(true) }
+    // get code here to avoid lagging onInput
+    LaunchedEffect(cssInput) {
+        try {
+            outputCode = if (cssInput.isNotBlank()) css2kobwebAsCode(cssInput) else emptyList()
+        } catch (_: Exception) {
+            // ignore exceptions from invalid css
+        }
+    }
+
     Column(
         Modifier.fillMaxSize().rowGap(0.5.cssRem),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
+        H1 {
+            Text("CSS 2 Kobweb")
+        }
+
         Row(
             Modifier
-                .height(75.percent)
+                .height(75.vh) // wanted to use 75% but that causes issues when kotlin code is too long
                 .width(90.percent)
                 .columnGap(1.cssRem)
         ) {
-            val textAreaModifier = Modifier
-                .fillMaxSize()
-                .padding(1.cssRem)
-                .borderRadius(8.px)
-                .resize(Resize.None)
-                .overflow(Overflow.Auto)
-                .styleModifier { property("tab-size", 4) }
-                .backgroundColor(ColorScheme.background)
-                .color(ColorScheme.color)
-                .attrsModifier {
-                    attr("spellcheck", "false")
-                    attr("data-enable-grammarly", "false")
-                }
-            TextArea(
-                textValue,
-                textAreaModifier.toAttrs {
-                    onInput { textValue = it.value }
-                    placeholder("hello: world;")
-                }
-            )
-            Box(textAreaModifier.position(Position.Relative).maxHeight(100.percent)) {
-                Box(
-                    Modifier
-                        .position(Position.Absolute)
-                        .top(0.px)
-                        .lineHeight(105.percent)
-                ) {
-                    KotlinCode(outputCode, syntaxHighlight)
-                }
-                Button(
-                    {
-                        @Suppress("UNUSED_VARIABLE") // needed & used in js call
-                        val textToCopy = outputCode.joinToString("")
-                        js("navigator.clipboard.writeText(textToCopy)") as Unit
-                    },
-                    Modifier
-                        .position(Position.Absolute)
-                        .right(1.cssRem)
-                ) {
-                    Text("Copy")
+            Column(Modifier.fillMaxSize()) {
+                Label(attrs = Modifier.display(DisplayStyle.Contents).toAttrs()) {
+                    H2(TextAreaLabelStyle.toAttrs()) { Text("CSS Input") }
+                    TextArea(
+                        cssInput,
+                        TextAreaStyle.toModifier()
+                            .outlineStyle(LineStyle.None)
+                            .borderStyle(LineStyle.None)
+                            .toAttrs {
+                                attr("spellcheck", "false")
+                                attr("data-enable-grammarly", "false")
+                                onInput {
+                                    cssInput = it.value
+                                }
+                            }
+                    )
                 }
             }
-        }
-        Button({ outputCode = css2kobwebAsCode(textValue) }) {
-            SpanText("css 2 kobweb")
-        }
-        Label {
-            CheckboxInput(syntaxHighlight, Modifier.toAttrs { onChange { syntaxHighlight = it.value } })
-            Text("Syntax Highlighting")
+            Column(Modifier.fillMaxSize().minWidth(0.px)) { // minWidth needed for text overflow
+                Row(
+                    TextAreaLabelStyle.toModifier().columnGap(1.cssRem),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    H2(
+                        Modifier
+                            .fillMaxWidth()
+                            .toAttrs()
+                    ) { Text("Kobweb Code Output") }
+
+                    var buttonText by remember { mutableStateOf("Copy") }
+                    Button(
+                        {
+                            window.navigator.clipboard.writeText(outputCode.joinToString(""))
+                            buttonText = "Copied!"
+                            window.setTimeout({ buttonText = "Copy" }, 2500)
+                        },
+                        Modifier.padding(topBottom = 0.25.cssRem, leftRight = 0.75.cssRem)
+                    ) {
+                        Text(buttonText)
+                    }
+                }
+                KotlinCode(outputCode, TextAreaStyle.toModifier())
+            }
         }
     }
 }
