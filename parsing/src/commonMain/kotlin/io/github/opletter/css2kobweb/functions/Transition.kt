@@ -1,39 +1,24 @@
 package io.github.opletter.css2kobweb.functions
 
 import io.github.opletter.css2kobweb.Arg
-import io.github.opletter.css2kobweb.kebabToPascalCase
 
-internal fun Arg.Function.Companion.transition(transition: String): Arg.Function {
-    val params = transition.split(" ").filter { it.isNotBlank() }
-    val firstParams = listOf(Arg.Literal("\"${params[0]}\""), Arg.UnitNum.of(params[1])).toTypedArray()
+internal fun Arg.Function.Companion.transition(
+    property: Arg,
+    duration: Arg? = null,
+    remainingArgs: List<Arg> = emptyList(),
+): Arg.Function {
+    val firstParams = listOfNotNull(property, duration)
 
-    return when (params.size) {
-        2 -> transitionOf(*firstParams)
-        4 -> {
-            transitionOf(
-                *firstParams,
-                Arg.Property("TransitionTimingFunction", kebabToPascalCase(params[2])),
-                Arg.UnitNum.of(params[3]),
-            )
+    return when (remainingArgs.size) {
+        0, 2 -> transitionOf(firstParams + remainingArgs)
+        1 -> {
+            val thirdArg = remainingArgs.single()
+                .let { if (it is Arg.UnitNum) Arg.NamedArg("delay", it) else it }
+            transitionOf(firstParams + thirdArg)
         }
 
-        3 -> {
-            val delay = Arg.UnitNum.ofOrNull(params[2])
-            if (delay == null) {
-                transitionOf(
-                    *firstParams,
-                    Arg.Property("TransitionTimingFunction", kebabToPascalCase(params[2])),
-                )
-            } else {
-                transitionOf(
-                    *firstParams,
-                    Arg.NamedArg("delay", delay),
-                )
-            }
-        }
-
-        else -> error("Invalid transition: $transition")
+        else -> error("Invalid transition")
     }
 }
 
-private fun transitionOf(vararg args: Arg): Arg.Function = Arg.Function("CSSTransition", args.toList())
+private fun transitionOf(args: List<Arg>): Arg.Function = Arg.Function("CSSTransition", args)

@@ -47,8 +47,20 @@ internal tailrec fun splitString(input: String, state: ParseState = ParseState()
 
 internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     if (propertyName == "transition") {
-        val transitions = value.split(",", ", ").filter { it.isNotBlank() }
-        return ParsedProperty(propertyName, transitions.map { Arg.Function.transition(it) })
+        val transitions = value.splitNotInParens(',').map { transition ->
+            val params = transition.splitNotInParens(' ').filter { it.isNotBlank() }
+            val thirdArg = params.getOrNull(2)?.let {
+                Arg.UnitNum.ofOrNull(it) ?: parseValue("transitionTimingFunction", it).args.singleOrNull()
+            }
+            val fourthArg = params.getOrNull(3)?.let { Arg.UnitNum.of(it) }
+
+            Arg.Function.transition(
+                property = Arg.Literal("\"${params[0]}\""),
+                duration = params.getOrNull(1)?.let { Arg.UnitNum.of(it) },
+                remainingArgs = listOfNotNull(thirdArg, fourthArg),
+            )
+        }
+        return ParsedProperty(propertyName, transitions)
     }
     if (propertyName == "transform") {
         val statements = value.splitNotInParens(' ').map { func ->
@@ -110,6 +122,9 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
         if (prop.startsWith('"')) {
             return@map Arg.Literal(prop)
         }
+        if (propertyName == "transitionProperty") {
+            return@map Arg.Literal("\"$prop\"")
+        }
 
         val className = when (propertyName) {
             "display" -> "DisplayStyle"
@@ -122,9 +137,13 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
         }
 
         if (prop.endsWith(")")) {
+            val functionPropertyName = if (propertyName == "transitionTimingFunction" && prop.startsWith("steps(")) {
+                "StepPosition"
+            } else propertyName
+
             return@map Arg.Function(
                 "$className.${kebabToCamelCase(prop.substringBefore("("))}",
-                parseValue(propertyName, prop.substringAfter("(").substringBeforeLast(")")).args
+                parseValue(functionPropertyName, prop.substringAfter("(").substringBeforeLast(")")).args
             )
         }
 

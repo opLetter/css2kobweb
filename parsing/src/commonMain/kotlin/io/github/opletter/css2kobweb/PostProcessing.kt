@@ -1,5 +1,6 @@
 package io.github.opletter.css2kobweb
 
+import io.github.opletter.css2kobweb.functions.transition
 
 internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedProperty> {
     return replaceKeysIfEqual(setOf("width", "height"), "size")
@@ -8,6 +9,7 @@ internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedPro
         .combineDirectionalModifiers("margin")
         .combineDirectionalModifiers("padding")
         .combineDirectionalModifiers("borderWidth") { "border${it}Width" }
+        .combineTransitionModifiers()
         .values.map {
             if (it.name == "width" && it.args.single() == Arg.UnitNum.of("100%")) {
                 ParsedProperty("fillMaxWidth")
@@ -18,6 +20,31 @@ internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedPro
             } else it
         }
 }
+
+private fun Map<String, ParsedProperty>.combineTransitionModifiers(): Map<String, ParsedProperty> {
+    val transitionProperties = this["transitionProperty"]?.args ?: return this
+
+    val propertyKeys = setOf(
+        "transitionProperty",
+        "transitionDuration",
+        "transitionTimingFunction",
+        "transitionDelay",
+    )
+    val propertyValues = propertyKeys.map { this[it]?.args }
+
+    if (propertyValues.size < 2 || propertyValues.filterNotNull().any { it.size != transitionProperties.size })
+        return this
+
+    val combinedProperties = transitionProperties.indices.map { index ->
+        Arg.Function.transition(
+            property = transitionProperties[index],
+            duration = propertyValues.getOrNull(1)?.getOrNull(index),
+            remainingArgs = propertyValues.drop(2).mapNotNull { it?.getOrNull(index) }
+        )
+    }
+    return (this - propertyKeys) + ("transition" to ParsedProperty("transition", combinedProperties))
+}
+
 
 private fun Map<String, ParsedProperty>.replaceKeysIfEqual(
     keysToReplace: Set<String>,
