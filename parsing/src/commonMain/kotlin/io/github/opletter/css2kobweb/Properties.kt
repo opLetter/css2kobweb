@@ -60,7 +60,13 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
             }
             Arg.Function(func.substringBefore('('), args)
         }
-        return ParsedProperty("transform", lambdaStatements = statements)
+        return ParsedProperty(propertyName, lambdaStatements = statements)
+    }
+    if (propertyName == "aspectRatio" && '/' in value) {
+        return ParsedProperty(
+            propertyName,
+            value.split('/').map { Arg.RawNumber(it.toIntOrNull() ?: it.toDouble()) }
+        )
     }
 
     return splitString(value).map { prop ->
