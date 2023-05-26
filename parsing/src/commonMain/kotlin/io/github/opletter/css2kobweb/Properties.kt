@@ -15,7 +15,7 @@ internal fun kebabToCamelCase(str: String): String {
 }
 
 internal fun parenContents(str: String): String {
-    return str.substringAfter('(').substringBeforeLast(')')
+    return str.substringAfter('(').substringBeforeLast(')').trim()
 }
 
 internal data class ParseState(
@@ -84,6 +84,12 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
             value.split('/').map { Arg.RawNumber(it.toIntOrNull() ?: it.toDouble()) }
         )
     }
+    if (propertyName == "fontFamily") {
+        return ParsedProperty(
+            propertyName,
+            value.splitNotInParens(',').map { Arg.Literal.withQuotesIfNecessary(it) }
+        )
+    }
 
     return splitString(value).map { prop ->
         val unit = Arg.UnitNum.ofOrNull(prop)
@@ -106,11 +112,11 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
         Arg.asColorOrNull(prop)?.let { return@map it }
 
         if (prop.startsWith("linear-gradient(")) {
-            return@map Arg.Function.linearGradient(parenContents(prop).trim())
+            return@map Arg.Function.linearGradient(parenContents(prop))
         }
 
         if (prop.startsWith("calc(")) {
-            val expr = parenContents(prop).trim()
+            val expr = parenContents(prop)
             val indexOfOperator = expr.indexOfAny(charArrayOf('*', '/')).takeIf { it != -1 }
                 ?: (expr.substringAfter(' ').indexOfAny(charArrayOf('+', '-')) + expr.indexOf(' ') + 1)
 
@@ -124,8 +130,8 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
         }
 
         if (prop.startsWith("url(")) {
-            val contents = parenContents(prop).trim().let { if (it.firstOrNull() == '"') it else "\"$it\"" }
-            return@map Arg.Function("url", listOf(Arg.Literal(contents)))
+            val contents = parenContents(prop)
+            return@map Arg.Function("url", listOf(Arg.Literal.withQuotesIfNecessary(contents)))
         }
 
         if (prop.startsWith('"')) {

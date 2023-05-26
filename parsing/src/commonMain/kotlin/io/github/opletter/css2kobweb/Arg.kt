@@ -3,7 +3,14 @@ package io.github.opletter.css2kobweb
 import io.github.opletter.css2kobweb.constants.units
 
 sealed class Arg(private val value: String) {
-    class Literal(val value: String) : Arg(value)
+    class Literal(val value: String) : Arg(value) {
+        companion object {
+            fun withQuotesIfNecessary(value: String): Literal {
+                val str = if (value.firstOrNull() == '"') value else "\"$value\""
+                return Literal(str)
+            }
+        }
+    }
 
     sealed class Number(val value: String) : Arg(value)
 
