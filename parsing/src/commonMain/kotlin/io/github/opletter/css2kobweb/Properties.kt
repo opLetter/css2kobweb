@@ -65,7 +65,7 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     if (propertyName == "transform") {
         val statements = value.splitNotInParens(' ').map { func ->
             val args = splitString(func.substringAfter('(').substringBeforeLast(')')).map {
-                if (it.toDoubleOrNull() == 0.0 && (it.startsWith("matrix") || it.startsWith("scale")))
+                if (it.toDoubleOrNull() == 0.0 && (func.startsWith("matrix") || func.startsWith("scale")))
                     Arg.RawNumber(0)
                 else
                     Arg.UnitNum.ofOrNull(it) ?: Arg.RawNumber(it.toIntOrNull() ?: it.toDouble())
