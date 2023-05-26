@@ -63,10 +63,7 @@ internal fun ParsedComponentStyle.asCodeBlocks(): List<CodeBlock> {
             val selector = if (selectorName.startsWith("cssRule(")) {
                 listOf(
                     CodeBlock("\tcssRule(", CodeElement.Plain),
-                    CodeBlock(
-                        selectorName.substringAfter("(").substringBeforeLast(")"),
-                        CodeElement.String,
-                    ),
+                    CodeBlock(parenContents(selectorName), CodeElement.String),
                     CodeBlock(") {\n", CodeElement.Plain),
                 )
             } else listOf(CodeBlock("\t$selectorName {\n", CodeElement.Plain))

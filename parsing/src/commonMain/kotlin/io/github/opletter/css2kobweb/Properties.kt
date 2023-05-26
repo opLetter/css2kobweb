@@ -14,6 +14,10 @@ internal fun kebabToCamelCase(str: String): String {
     return kebabToPascalCase(str).replaceFirstChar { it.lowercase() }
 }
 
+internal fun parenContents(str: String): String {
+    return str.substringAfter('(').substringBeforeLast(')')
+}
+
 internal data class ParseState(
     val quotesCount: Int = 0,
     val parensCount: Int = 0,
@@ -102,11 +106,11 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
         Arg.asColorOrNull(prop)?.let { return@map it }
 
         if (prop.startsWith("linear-gradient(")) {
-            return@map Arg.Function.linearGradient(prop.substringAfter("(").substringBeforeLast(")").trim())
+            return@map Arg.Function.linearGradient(parenContents(prop).trim())
         }
 
         if (prop.startsWith("calc(")) {
-            val expr = prop.substringAfter("(").substringBeforeLast(")").trim()
+            val expr = parenContents(prop).trim()
             val indexOfOperator = expr.indexOfAny(charArrayOf('*', '/')).takeIf { it != -1 }
                 ?: (expr.substringAfter(' ').indexOfAny(charArrayOf('+', '-')) + expr.indexOf(' ') + 1)
 
@@ -117,6 +121,11 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
                 Arg.UnitNum.ofOrNull(arg2) ?: Arg.RawNumber(arg2.toIntOrNull() ?: arg2.toDouble()),
                 expr[indexOfOperator],
             )
+        }
+
+        if (prop.startsWith("url(")) {
+            val contents = parenContents(prop).trim().let { if (it.firstOrNull() == '"') it else "\"$it\"" }
+            return@map Arg.Function("url", listOf(Arg.Literal(contents)))
         }
 
         if (prop.startsWith('"')) {
@@ -141,9 +150,22 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
                 "StepPosition"
             } else propertyName
 
+            val filterFunctions = setOf(
+                "blur", "brightness", "contrast", "dropShadow", "grayscale", "hueRotate", "invert", "saturate", "sepia",
+            )
+            val mathFunctions = setOf("clamp", "min", "max")
+            val simpleGlobalFunctions = filterFunctions + mathFunctions
+
+            val functionName = kebabToCamelCase(prop.substringBefore("("))
+            val prefix = if (functionName in simpleGlobalFunctions) "" else "$className."
+
             return@map Arg.Function(
-                "$className.${kebabToCamelCase(prop.substringBefore("("))}",
-                parseValue(functionPropertyName, prop.substringAfter("(").substringBeforeLast(")")).args
+                "$prefix$functionName",
+                parseValue(functionPropertyName, parenContents(prop)).args.map {
+                    if (it.toString() == "0.px" && functionName in filterFunctions)
+                        Arg.RawNumber(0)
+                    else it
+                }
             )
         }
 
