@@ -1,6 +1,5 @@
 package io.github.opletter.css2kobweb.pages
 
-//import kotlinx.browser.window
 import androidx.compose.runtime.*
 import com.varabyte.kobweb.compose.css.Overflow
 import com.varabyte.kobweb.compose.css.Resize
