@@ -88,6 +88,10 @@ fun HomePage() {
                             .toAttrs {
                                 attr("spellcheck", "false")
                                 attr("data-enable-grammarly", "false")
+                                ref {
+                                    it.focus()
+                                    onDispose { }
+                                }
                                 onInput {
                                     cssInput = it.value
                                 }
