@@ -22,7 +22,10 @@ internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedPro
 }
 
 private fun Map<String, ParsedProperty>.combineTransitionModifiers(): Map<String, ParsedProperty> {
-    val transitionProperties = this["transitionProperty"]?.args ?: return this
+    val transitionProperties = this["transitionProperty"]?.args
+    // treat "transition" as "transitionProperty" if all it contains are properties
+        ?: this["transition"]?.args?.mapNotNull { (it as? Arg.Function)?.args?.singleOrNull() }
+        ?: return this
 
     val propertyKeys = setOf(
         "transitionProperty",
@@ -32,19 +35,29 @@ private fun Map<String, ParsedProperty>.combineTransitionModifiers(): Map<String
     )
     val propertyValues = propertyKeys.map { this[it]?.args }
 
-    if (propertyValues.size < 2 || propertyValues.filterNotNull().any { it.size != transitionProperties.size })
-        return this
+    val transitionGroup = transitionProperties.size > 1 &&
+            propertyValues.drop(1).filterNotNull().all { it.size == 1 }
 
-    val combinedProperties = transitionProperties.indices.map { index ->
+    val combinedProperties = if (transitionGroup) {
         Arg.Function.transition(
-            property = transitionProperties[index],
-            duration = propertyValues.getOrNull(1)?.getOrNull(index),
-            remainingArgs = propertyValues.drop(2).mapNotNull { it?.getOrNull(index) }
-        )
+            property = Arg.Function("setOf", transitionProperties),
+            duration = propertyValues.getOrNull(1)?.getOrNull(0),
+            remainingArgs = propertyValues.drop(2).mapNotNull { it?.getOrNull(0) }
+        ).let { listOf(it) }
+    } else {
+        if (propertyValues.size < 2 || propertyValues.filterNotNull().any { it.size != transitionProperties.size })
+            return this
+
+        transitionProperties.indices.map { index ->
+            Arg.Function.transition(
+                property = transitionProperties[index],
+                duration = propertyValues.getOrNull(1)?.getOrNull(index),
+                remainingArgs = propertyValues.drop(2).mapNotNull { it?.getOrNull(index) }
+            )
+        }
     }
     return (this - propertyKeys) + ("transition" to ParsedProperty("transition", combinedProperties))
 }
-
 
 private fun Map<String, ParsedProperty>.replaceKeysIfEqual(
     keysToReplace: Set<String>,
