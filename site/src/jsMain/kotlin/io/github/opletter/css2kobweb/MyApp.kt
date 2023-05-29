@@ -40,13 +40,14 @@ fun updateTheme(ctx: InitSilkContext) {
     val palette = MutableSilkPalette(
         background = Color.rgb(188, 190, 196),
         color = Color.rgb(30, 31, 34),
-        link = ctx.theme.palettes.light.link,
         button = MutableSilkPalette.Button(
             default = Color.rgb(0xF97068),
             hover = Color.rgb(0xF97068).darkened(0.1f),
             focus = ctx.theme.palettes.light.button.focus,
             pressed = Color.rgb(0xF97068).darkened(0.25f),
         ),
+        link = ctx.theme.palettes.light.link,
+        tab = ctx.theme.palettes.light.tab,
     )
 
     // todo: unique color modes
