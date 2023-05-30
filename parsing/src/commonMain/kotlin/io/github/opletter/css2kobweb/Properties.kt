@@ -1,8 +1,6 @@
 package io.github.opletter.css2kobweb
 
-import io.github.opletter.css2kobweb.functions.asColorOrNull
-import io.github.opletter.css2kobweb.functions.linearGradient
-import io.github.opletter.css2kobweb.functions.transition
+import io.github.opletter.css2kobweb.functions.*
 
 internal fun kebabToPascalCase(str: String): String {
     return str.split('-').joinToString("") { prop ->
@@ -113,6 +111,12 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
 
         if (prop.startsWith("linear-gradient(")) {
             return@map Arg.Function.linearGradient(parenContents(prop))
+        }
+        if (prop.startsWith("radial-gradient(")) {
+            return@map Arg.Function.radialGradient(parenContents(prop))
+        }
+        if (prop.startsWith("conic-gradient(")) {
+            return@map Arg.Function.conicGradient(parenContents(prop))
         }
 
         if (prop.startsWith("calc(")) {

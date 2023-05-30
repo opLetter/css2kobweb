@@ -32,13 +32,7 @@ internal fun Arg.Function.Companion.linearGradient(value: String): Arg.Function 
         )
     } else null
 
-    val lambdaFunctions = parts.drop(if (mainArg == null) 0 else 1).map { colorStopList ->
-        val subParts = colorStopList.splitNotInParens(' ')
-        val unitParts = subParts.mapNotNull { Arg.UnitNum.ofOrNull(it, zeroUnit = "percent") }
-
-        if (subParts.size == 1 && unitParts.size == 1) Arg.Function("setMidpoint", unitParts)
-        else Arg.Function("add", listOf(Arg.asColorOrNull(subParts[0])!!) + unitParts)
-    }
+    val lambdaFunctions = gradientColorStopList(parts.drop(if (mainArg == null) 0 else 1))
 
     return linearGradientOf(
         args = listOfNotNull(mainArg).toTypedArray(),
