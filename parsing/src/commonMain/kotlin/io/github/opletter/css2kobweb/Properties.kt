@@ -2,6 +2,8 @@ package io.github.opletter.css2kobweb
 
 import io.github.opletter.css2kobweb.functions.*
 
+private val GlobalValues = setOf("initial", "inherit", "unset", "revert")
+
 internal fun kebabToPascalCase(str: String): String {
     return str.split('-').joinToString("") { prop ->
         prop.replaceFirstChar { it.titlecase() }
@@ -90,6 +92,10 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     }
 
     return splitString(value).map { prop ->
+        if (prop in GlobalValues) {
+            return@map Arg.Property(classNamesFromProperty(propertyName), kebabToPascalCase(prop))
+        }
+
         val unit = Arg.UnitNum.ofOrNull(prop)
         if (unit != null) {
             val takeRawZero = setOf(
@@ -145,15 +151,7 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
             return@map Arg.Literal("\"$prop\"")
         }
 
-        val className = when (propertyName) {
-            "display" -> "DisplayStyle"
-
-            "border", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight",
-            "outline", "outlineStyle",
-            -> "LineStyle"
-
-            else -> propertyName.replaceFirstChar { it.uppercase() }
-        }
+        val className = classNamesFromProperty(propertyName)
 
         if (prop.endsWith(")")) {
             val functionPropertyName = if (propertyName == "transitionTimingFunction" && prop.startsWith("steps(")) {
@@ -181,4 +179,16 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
 
         Arg.Property(className, kebabToPascalCase(prop))
     }.let { ParsedProperty(propertyName, it) }
+}
+
+private fun classNamesFromProperty(propertyName: String): String {
+    return when (propertyName) {
+        "display" -> "DisplayStyle"
+
+        "border", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight",
+        "outline", "outlineStyle",
+        -> "LineStyle"
+
+        else -> propertyName.replaceFirstChar { it.uppercase() }
+    }
 }
