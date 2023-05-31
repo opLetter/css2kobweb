@@ -54,15 +54,19 @@ internal fun Arg.Function.Companion.positionOrNull(value: String): Arg? {
             }
         }
 
-        3 -> {
+        3 -> { // could also delegate to 4-value logic but this lets us generate nicer code
             val xIndex = position.indexOfFirst { it in xEdges }
+                .let { if (it == -1) position.indexOf("center") else it }
             val yIndex = position.indexOfFirst { it in yEdges }
+                .let { if (it == -1) position.indexOf("center") else it }
 
             val unitIndex = ((0..2) - setOf(xIndex, yIndex)).singleOrNull() ?: return null
             val unit = Arg.UnitNum.ofOrNull(position[unitIndex]) ?: return null
 
-            val xArg = if (xIndex + 1 == unitIndex) edge(position[xIndex], unit) else edge(position[xIndex])
-            val yArg = if (yIndex + 1 == unitIndex) edge(position[yIndex], unit) else edge(position[yIndex])
+            val xArg = if (xIndex + 1 == unitIndex) edge(position[xIndex], unit)
+            else edge(position[xIndex].let { if (it == "center") "center-x" else it })
+            val yArg = if (yIndex + 1 == unitIndex) edge(position[yIndex], unit)
+            else edge(position[yIndex].let { if (it == "center") "center-y" else it })
 
             Arg.Function("CSSPosition", listOf(xArg, yArg))
         }
