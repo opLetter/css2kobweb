@@ -46,6 +46,18 @@ private fun String.baseName() = substringBefore(":").substringBefore(" ")
 
 // ignores commas in parentheses
 fun String.splitNotInParens(char: Char): List<String> {
-    val adjustedChar = if (char == ' ') "\\s" else char
-    return split("$adjustedChar(?![^()]*\\))".toRegex()).map { it.trim() }.filter { it.isNotBlank() }
+    val result = fold(mutableListOf(StringBuilder()) to 0) { (list, depth), c ->
+        val newDepth = when (c) {
+            '(' -> depth + 1
+            ')' -> depth - 1
+            else -> depth
+        }
+        if (c == char && depth == 0) {
+            list.add(StringBuilder())
+        } else {
+            list.last().append(c)
+        }
+        list to newDepth
+    }
+    return result.first.map { it.toString().trim() }.filter { it.isNotEmpty() }
 }

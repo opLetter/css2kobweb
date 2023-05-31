@@ -234,14 +234,15 @@ private fun parseBackground(value: String): List<Arg> {
         .map { it.splitNotInParens('/').joinToString(" / ") }
 
     val backgroundObjects = backgrounds.map { background ->
-        val urlRegex = """url\((.*?)\)""".toRegex()
-        val gradientRegex = """(linear|radial)-gradient\((.*?)\)""".toRegex()
         val repeatRegex = """(repeat-x|repeat-y|repeat|space|round|no-repeat)\b""".toRegex()
         val attachmentRegex = """(scroll|fixed|local)\b""".toRegex()
         val boxRegex = """(border-box|padding-box|content-box)\b""".toRegex()
 
         val backgroundArgs = buildList {
-            val image = urlRegex.find(background)?.value ?: gradientRegex.find(background)?.value
+            val image = background.splitNotInParens(' ').firstOrNull {
+                it.startsWith("url(") || it.startsWith("linear-gradient(")
+                        || it.startsWith("radial-gradient(") || it.startsWith("conic-gradient(")
+            }
             if (image != null) {
                 val imageArg = parseValue("backgroundImage", image).args.single()
                     .let { if (it is Arg.Function) Arg.Function("BackgroundImage.of", listOf(it)) else it }
