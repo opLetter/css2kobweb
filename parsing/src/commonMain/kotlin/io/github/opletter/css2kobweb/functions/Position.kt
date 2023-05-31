@@ -4,7 +4,7 @@ import io.github.opletter.css2kobweb.Arg
 import io.github.opletter.css2kobweb.kebabToPascalCase
 import io.github.opletter.css2kobweb.splitNotInParens
 
-internal fun Arg.Function.Companion.position(value: String): Arg {
+internal fun Arg.Function.Companion.positionOrNull(value: String): Arg? {
     val position = value.splitNotInParens(' ')
 
     val xEdges = setOf("left", "right")
@@ -13,14 +13,12 @@ internal fun Arg.Function.Companion.position(value: String): Arg {
     return when (position.size) {
         1 -> {
             val arg = position.single()
-
             Arg.UnitNum.ofOrNull(arg)?.let { Arg.Function("CSSPosition", listOf(it)) }
                 ?: Arg.Property("CSSPosition", kebabToPascalCase(arg))
         }
 
         2 -> {
             val units = position.mapNotNull { Arg.UnitNum.ofOrNull(it) }
-
             when (units.size) {
                 0 -> {
                     val notCenter = position.filter { it != "center" }
@@ -29,7 +27,9 @@ internal fun Arg.Function.Companion.position(value: String): Arg {
                         1 -> Arg.Property("CSSPosition", kebabToPascalCase(notCenter.single()))
                         2 -> {
                             val (x, y) = notCenter.partition { it in xEdges }
-                            Arg.Property("CSSPosition", kebabToPascalCase("${y.single()}-${x.single()}"))
+                            // nulls will be filtered out in validation step
+                            val propertyName = kebabToPascalCase("${y.singleOrNull()}-${x.singleOrNull()}")
+                            Arg.Property("CSSPosition", propertyName)
                         }
 
                         else -> error("Unexpected notCenter size: ${notCenter.size}")
@@ -42,7 +42,7 @@ internal fun Arg.Function.Companion.position(value: String): Arg {
                         val yFun = Arg.Function("Edge.Top", units)
                         Arg.Function("CSSPosition", listOf(edge(xEdge), yFun))
                     } else {
-                        val yEdge = yEdges.single { it in position }
+                        val yEdge = yEdges.singleOrNull { it in position } ?: return null
                         val xFun = Arg.Function("Edge.Left", units)
                         Arg.Function("CSSPosition", listOf(xFun, edge(yEdge)))
                     }
@@ -58,8 +58,8 @@ internal fun Arg.Function.Companion.position(value: String): Arg {
             val xIndex = position.indexOfFirst { it in xEdges }
             val yIndex = position.indexOfFirst { it in yEdges }
 
-            val unitIndex = ((0..2) - setOf(xIndex, yIndex)).single()
-            val unit = Arg.UnitNum.of(position[unitIndex])
+            val unitIndex = ((0..2) - setOf(xIndex, yIndex)).singleOrNull() ?: return null
+            val unit = Arg.UnitNum.ofOrNull(position[unitIndex]) ?: return null
 
             val xArg = if (xIndex + 1 == unitIndex) edge(position[xIndex], unit) else edge(position[xIndex])
             val yArg = if (yIndex + 1 == unitIndex) edge(position[yIndex], unit) else edge(position[yIndex])
@@ -69,18 +69,26 @@ internal fun Arg.Function.Companion.position(value: String): Arg {
 
         4 -> {
             val xIndex = if (position[0] in xEdges) 0 else 2
-            Arg.Function(
-                "CSSPosition",
-                listOf(
-                    edge(position[xIndex], Arg.UnitNum.of(position[xIndex + 1])),
-                    edge(position[2 - xIndex], Arg.UnitNum.of(position[3 - xIndex])),
-                )
-            )
+            val xUnit = Arg.UnitNum.ofOrNull(position[xIndex + 1]) ?: return null
+            val yUnit = Arg.UnitNum.ofOrNull(position[3 - xIndex]) ?: return null
+
+            Arg.Function("CSSPosition", listOf(edge(position[xIndex], xUnit), edge(position[2 - xIndex], yUnit)))
         }
 
-        else -> error("Invalid position: $position")
+        else -> null
+    }?.takeIf {
+        val validPositions = setOf(
+            "Top", "TopRight", "Right", "BottomRight", "Bottom", "BottomLeft",
+            "Left", "TopLeft", "Center"
+        )
+        !it.toString().startsWith("CSSPosition.")
+                || it.toString().substringAfter(".") in validPositions
     }
 }
+
+// positionOrNull
+internal fun Arg.Function.Companion.position(value: String): Arg =
+    positionOrNull(value) ?: error("Invalid position: $value")
 
 private fun edge(name: String) = Arg.Property("Edge", kebabToPascalCase(name))
 private fun edge(name: String, unit: Arg.UnitNum) = Arg.Function("Edge.${kebabToPascalCase(name)}", listOf(unit))
