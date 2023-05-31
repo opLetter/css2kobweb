@@ -1,5 +1,6 @@
 package io.github.opletter.css2kobweb
 
+import io.github.opletter.css2kobweb.functions.position
 import io.github.opletter.css2kobweb.functions.transition
 
 internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedProperty> {
@@ -10,6 +11,8 @@ internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedPro
         .combineDirectionalModifiers("padding")
         .combineDirectionalModifiers("borderWidth") { "border${it}Width" }
         .combineTransitionModifiers()
+        .combineBackgroundPosition() // must be before combineBackgroundModifiers
+        .combineBackgroundModifiers()
         .values.map {
             if (it.name == "width" && it.args.single() == Arg.UnitNum.of("100%")) {
                 ParsedProperty("fillMaxWidth")
@@ -19,6 +22,73 @@ internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedPro
                 ParsedProperty("fillMaxSize")
             } else it
         }
+}
+
+private fun Map<String, ParsedProperty>.combineBackgroundPosition(): Map<String, ParsedProperty> {
+    val keys = setOf("backgroundPositionX", "backgroundPositionY")
+    val positions = keys.mapNotNull {
+        val value = this[it] ?: return@mapNotNull null
+        // one arg -> Arg.Literal -> see parseValue()
+        value.args.single().toString().splitNotInParens(',')
+    }.ifEmpty { return this }
+
+    val positionArgs = positions.first().indices.map { index ->
+        val cssPosition = Arg.Function.position(positions.joinToString(" ") { it[index] })
+        Arg.Function("BackgroundPosition.of", listOf(cssPosition))
+    }
+    val newProperty = ParsedProperty("backgroundPosition", positionArgs)
+    return (this - keys) + (newProperty.name to newProperty)
+}
+
+
+private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String, ParsedProperty> {
+    fun String.getArgName() = this.substringAfter("background").substringBefore("Mode").lowercase()
+
+    val existingBackground = this["background"]
+    val existingBackgroundArgs = existingBackground?.args
+        ?.dropWhile { !it.toString().startsWith("CSS") } // filter color arg
+
+    val propertyKeys = setOf(
+        "backgroundImage",
+        "backgroundRepeat",
+        "backgroundSize",
+        "backgroundPosition",
+        "backgroundBlendMode",
+        "backgroundOrigin",
+        "backgroundClip",
+        "backgroundAttachment",
+    )
+    val argNames = propertyKeys.map { it.getArgName() }
+
+    val propertyValues = propertyKeys.mapNotNull { prop ->
+        this[prop]?.let { prop to it.args }
+    }.toMap()
+
+    if (propertyValues.isEmpty() || (existingBackgroundArgs == null && propertyValues.values.all { it.size == 1 }))
+        return this
+
+    // reversed as in kobweb
+    val backgroundProperties = propertyValues.values.first().indices.reversed().map { index ->
+        val args = propertyValues.map { (prop, args) ->
+            val originalArg = args[index]
+            val adjustedArg = if (prop == "backgroundImage" && originalArg is Arg.Function)
+                Arg.Function("BackgroundImage.of", listOf(originalArg))
+            else originalArg
+
+            Arg.NamedArg(prop.getArgName(), adjustedArg)
+        }
+        val existingArgs = (existingBackgroundArgs?.get(index) as Arg.Function?)?.args.orEmpty()
+        val combinedArgs = (existingArgs + args).sortedBy { argNames.indexOf(it.toString().substringBefore(" ")) }
+
+        Arg.Function("CSSBackground", combinedArgs)
+    }
+
+    val color = this["backgroundColor"]?.args
+        ?: listOfNotNull(existingBackground?.args?.firstOrNull().takeIf { !it.toString().startsWith("CSS") })
+
+    val newProperty = ParsedProperty("background", color + backgroundProperties)
+
+    return (this - propertyKeys - "backgroundColor") + (newProperty.name to newProperty)
 }
 
 private fun Map<String, ParsedProperty>.combineTransitionModifiers(): Map<String, ParsedProperty> {

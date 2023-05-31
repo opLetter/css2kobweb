@@ -1,6 +1,8 @@
 package io.github.opletter.css2kobweb
 
 import io.github.opletter.css2kobweb.functions.*
+import kotlin.math.max
+import kotlin.math.min
 
 private val GlobalValues = setOf("initial", "inherit", "unset", "revert")
 
@@ -89,6 +91,39 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
             propertyName,
             value.splitNotInParens(',').map { Arg.Literal.withQuotesIfNecessary(it) }
         )
+    }
+    if (propertyName == "background") {
+        return ParsedProperty(propertyName, parseBackground(value))
+    }
+    if (propertyName == "backgroundPosition" && value !in GlobalValues) {
+        val args = value.splitNotInParens(',').map {
+            if (it in GlobalValues) parseValue(propertyName, it).args.single()
+            else Arg.Function("BackgroundPosition.of", listOf(Arg.Function.position(it)))
+        }
+        return ParsedProperty(propertyName, args)
+    }
+    if (propertyName == "backgroundPositionX" || propertyName == "backgroundPositionY") {
+        // will be handled in postProcessing, preserve values for now
+        return ParsedProperty(propertyName, listOf(Arg.Literal(value)))
+    }
+    if (propertyName == "backgroundSize") {
+        val args = value.splitNotInParens(',').map { subValue ->
+            if (subValue in GlobalValues || subValue in setOf("cover", "contain")) {
+                Arg.Property("BackgroundSize", kebabToPascalCase(subValue))
+            } else {
+                Arg.Function("BackgroundSize.of", subValue.splitNotInParens(' ').map { Arg.UnitNum.of(it) })
+            }
+        }
+        return ParsedProperty(propertyName, args)
+    }
+    if (propertyName == "backgroundRepeat") {
+        val args = value.splitNotInParens(',').map { subValue ->
+            val values = subValue.splitNotInParens(' ')
+                .map { Arg.Property(kebabToPascalCase(propertyName), kebabToPascalCase(it)) }
+
+            values.singleOrNull() ?: Arg.Function("BackgroundRepeat.of", values)
+        }
+        return ParsedProperty(propertyName, args)
     }
 
     return splitString(value).map { prop ->
@@ -191,4 +226,80 @@ private fun classNamesFromProperty(propertyName: String): String {
 
         else -> propertyName.replaceFirstChar { it.uppercase() }
     }
+}
+
+private fun parseBackground(value: String): List<Arg> {
+    // kobweb reverses order of backgrounds
+    val backgrounds = value.splitNotInParens(',').reversed()
+        .map { it.splitNotInParens('/').joinToString(" / ") }
+
+    val backgroundObjects = backgrounds.map { background ->
+        val urlRegex = """url\((.*?)\)""".toRegex()
+        val gradientRegex = """(linear|radial)-gradient\((.*?)\)""".toRegex()
+        val repeatRegex = """(repeat-x|repeat-y|repeat|space|round|no-repeat)\b""".toRegex()
+        val attachmentRegex = """(scroll|fixed|local)\b""".toRegex()
+        val boxRegex = """(border-box|padding-box|content-box)\b""".toRegex()
+
+        val backgroundArgs = buildList {
+            val image = urlRegex.find(background)?.value ?: gradientRegex.find(background)?.value
+            if (image != null) {
+                val imageArg = parseValue("backgroundImage", image).args.single()
+                    .let { if (it is Arg.Function) Arg.Function("BackgroundImage.of", listOf(it)) else it }
+                add(Arg.NamedArg("image", imageArg))
+            }
+
+            val repeat = repeatRegex.find(background)?.value
+            if (repeat != null) {
+                val repeatArg = parseValue("backgroundRepeat", repeat).args.single()
+                add(Arg.NamedArg("repeat", repeatArg))
+            }
+
+            val attachment = attachmentRegex.find(background)?.value
+            if (attachment != null) {
+                val attachmentArg = parseValue("backgroundAttachment", attachment).args.single()
+                add(Arg.NamedArg("attachment", attachmentArg))
+            }
+
+            val boxMatches = boxRegex.findAll(background).toList()
+            if (boxMatches.isNotEmpty()) {
+                val (origin, clip) = if (boxMatches.size == 2) boxMatches else List(2) { boxMatches.single() }
+                val originArg = parseValue("backgroundOrigin", origin.value).args.single()
+                val clipArg = parseValue("backgroundClip", clip.value).args.single()
+                add(Arg.NamedArg("origin", originArg))
+                add(Arg.NamedArg("clip", clipArg))
+            }
+
+            val otherProps = background.splitNotInParens(' ') - setOfNotNull(image, repeat, attachment) -
+                    boxMatches.map { it.value }.toSet()
+
+            val slashIndex = otherProps.indexOf("/")
+            if (slashIndex != -1) {
+                val positionStr = otherProps.subList(max(0, slashIndex - 2), slashIndex).joinToString(" ")
+                val position = Arg.Function.positionOrNull(positionStr)
+                    ?: Arg.Function.position(otherProps[slashIndex - 1])
+                val size = otherProps.subList(slashIndex + 1, min(otherProps.size, slashIndex + 3))
+                    .mapNotNull { Arg.UnitNum.ofOrNull(it) }
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { Arg.Function("BackgroundSize.of", it) }
+                    ?: parseValue("backgroundSize", otherProps[slashIndex + 1]).args.single()
+
+                add(Arg.NamedArg("position", Arg.Function("BackgroundPosition.of", listOf(position))))
+                add(Arg.NamedArg("size", size))
+            } else if (otherProps.isNotEmpty()) {
+                val position = (0..otherProps.size - 2).firstNotNullOfOrNull {
+                    val positionStr = otherProps.subList(it, it + 2).joinToString(" ")
+                    Arg.Function.positionOrNull(positionStr)
+                } ?: Arg.Function.positionOrNull(otherProps.first())
+                ?: Arg.Function.positionOrNull(otherProps.last())
+
+                position?.let {
+                    add(Arg.NamedArg("position", Arg.Function("BackgroundPosition.of", listOf(it))))
+                }
+            }
+        }
+        Arg.Function("CSSBackground", backgroundArgs)
+    }.filter { it.args.isNotEmpty() }
+
+    val color = backgrounds.first().splitNotInParens(' ').firstNotNullOfOrNull { Arg.asColorOrNull(it) }
+    return listOfNotNull(color) + backgroundObjects
 }
