@@ -140,14 +140,20 @@ internal fun Arg.asCodeBlocks(
             val indents = "\t".repeat(indentLevel + 1)
             add(CodeBlock(name, functionType))
             if (args.isNotEmpty() || lambdaStatements.isEmpty()) {
-                add(CodeBlock("(", CodeElement.Plain))
+                val longArgs = args.toString().length > 100 // number chosen arbitrarily
+
+                val separator = if (longArgs) ",\n\t$indents" else ", "
+                val start = if (longArgs) "(\n\t$indents" else "("
+                val end = if (longArgs) "\n$indents)" else ")"
+
+                add(CodeBlock(start, CodeElement.Plain))
                 addAll(args.flatMapIndexed { index, arg ->
-                    val argBlocks = arg.asCodeBlocks(indentLevel)
+                    val argBlocks = arg.asCodeBlocks(indentLevel + if (longArgs) 1 else 0)
                     if (index < args.size - 1) {
-                        argBlocks + CodeBlock(", ", CodeElement.Plain)
+                        argBlocks + CodeBlock(separator, CodeElement.Plain)
                     } else argBlocks
                 })
-                add(CodeBlock(")", CodeElement.Plain))
+                add(CodeBlock(end, CodeElement.Plain))
             }
             if (lambdaStatements.isNotEmpty()) {
                 add(CodeBlock(" {", CodeElement.Plain))
