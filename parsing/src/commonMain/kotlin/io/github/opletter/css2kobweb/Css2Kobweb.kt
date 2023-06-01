@@ -6,7 +6,10 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
     val cleanedCss = inlineCssVariables(rawCSS)
         .replace("/\\*[\\s\\S]*?\\*/".toRegex(), "") // remove comments
         .replace('\'', '"') // to simplify parsing
-    val cssBySelector = parseCss(cleanedCss).ifEmpty { return getProperties(cleanedCss) }
+
+    val cssBySelector = parseCss(cleanedCss).ifEmpty {
+        return if (":" in cleanedCss) getProperties(cleanedCss) else parseValue("", cleanedCss)
+    }
 
     val modifiersBySelector = cssBySelector.flatMapIndexed { index, (selectors, modifier) ->
         val allSelectors = selectors.splitNotInParens(',')

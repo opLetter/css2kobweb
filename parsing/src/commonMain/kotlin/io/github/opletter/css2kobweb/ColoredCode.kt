@@ -9,12 +9,13 @@ class CodeBlock(val text: String, val type: CodeElement) {
 }
 
 fun css2kobwebAsCode(rawCSS: String, extractOutCommonModifiers: Boolean = true): List<CodeBlock> {
-    val result = css2kobweb(rawCSS, extractOutCommonModifiers)
-
-    if (result is ParsedModifier) {
-        return result.asCodeBlocks()
+    val result = css2kobweb(rawCSS, extractOutCommonModifiers).let {
+        when (it) {
+            is ParsedModifier -> return it.asCodeBlocks()
+            is Arg.Function -> return it.asCodeBlocks(0)
+            is ParsedComponentStyles -> it
+        }
     }
-    check(result is ParsedComponentStyles)
 
     val globalModifierCode = result.styles.flatMap { style ->
         style.modifiers.values.flatMap { it.filterModifiers<StyleModifier.Global>() }
@@ -103,7 +104,7 @@ internal fun ParsedModifier.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> 
     val indents = "\t".repeat(indentLevel)
     val coloredModifiers = properties.flatMap {
         listOf(CodeBlock("\n\t$indents.", CodeElement.Plain)) +
-                it.asCodeBlocks(indentLevel, functionType = CodeElement.ExtensionFun)
+                it.asCodeBlocks(indentLevel + 1, functionType = CodeElement.ExtensionFun)
     }
     return listOf(CodeBlock("${indents}Modifier", CodeElement.Plain)) + coloredModifiers
 }
@@ -144,7 +145,7 @@ internal fun Arg.asCodeBlocks(
         is Arg.NamedArg -> listOf(CodeBlock("$name = ", CodeElement.NamedArg)) + value.asCodeBlocks(indentLevel)
 
         is Arg.Function -> buildList {
-            val indents = "\t".repeat(indentLevel + 1)
+            val indents = "\t".repeat(indentLevel)
             add(CodeBlock(name, functionType))
             if (args.isNotEmpty() || lambdaStatements.isEmpty()) {
                 val longArgs = args.toString().length > 100 // number chosen arbitrarily
