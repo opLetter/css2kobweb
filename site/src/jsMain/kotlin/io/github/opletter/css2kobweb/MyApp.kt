@@ -29,7 +29,9 @@ fun updateTheme(ctx: InitSilkContext) {
             Modifier.fontFamily("system-ui", "Segoe UI", "Tahoma", "Helvetica", "sans-serif")
         }
         registerBaseStyle("h1") {
-            Modifier.fontSize(3.cssRem)
+            Modifier
+                .fontSize(3.cssRem)
+                .marginBlock(0.5.cssRem, 0.5.cssRem)
         }
         registerBaseStyle("h2") {
             Modifier.marginBlock(0.cssRem, 0.cssRem)

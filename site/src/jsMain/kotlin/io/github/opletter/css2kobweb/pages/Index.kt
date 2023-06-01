@@ -1,6 +1,7 @@
 package io.github.opletter.css2kobweb.pages
 
 import androidx.compose.runtime.*
+import com.varabyte.kobweb.compose.css.FontWeight
 import com.varabyte.kobweb.compose.css.Overflow
 import com.varabyte.kobweb.compose.css.Resize
 import com.varabyte.kobweb.compose.foundation.layout.Column
@@ -14,18 +15,24 @@ import com.varabyte.kobweb.compose.ui.styleModifier
 import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.silk.components.forms.Button
+import com.varabyte.kobweb.silk.components.layout.SimpleGrid
+import com.varabyte.kobweb.silk.components.layout.numColumns
 import com.varabyte.kobweb.silk.components.style.ComponentStyle
 import com.varabyte.kobweb.silk.components.style.base
 import com.varabyte.kobweb.silk.components.style.toAttrs
 import com.varabyte.kobweb.silk.components.style.toModifier
 import com.varabyte.kobweb.silk.theme.toSilkPalette
 import io.github.opletter.css2kobweb.CodeBlock
+import io.github.opletter.css2kobweb.components.layouts.PageLayout
 import io.github.opletter.css2kobweb.components.widgets.KotlinCode
 import io.github.opletter.css2kobweb.css2kobwebAsCode
 import kotlinx.browser.window
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.web.css.*
-import org.jetbrains.compose.web.dom.*
+import org.jetbrains.compose.web.dom.H2
+import org.jetbrains.compose.web.dom.Label
+import org.jetbrains.compose.web.dom.Text
+import org.jetbrains.compose.web.dom.TextArea
 import kotlin.time.Duration.Companion.milliseconds
 
 val TextAreaStyle by ComponentStyle.base {
@@ -40,7 +47,7 @@ val TextAreaStyle by ComponentStyle.base {
         .color(colorMode.toSilkPalette().background)
 }
 
-val TextAreaLabelStyle by ComponentStyle.base {
+val TextAreaLabelBarStyle by ComponentStyle.base {
     Modifier
         .fillMaxWidth()
         .backgroundColor(Colors.Black)
@@ -69,23 +76,18 @@ fun HomePage() {
         }
     }
 
-    Column(
-        Modifier.fillMaxSize().rowGap(0.5.cssRem),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        H1 {
-            Text("CSS 2 Kobweb")
-        }
-
-        Row(
+    PageLayout("CSS 2 Kobweb") {
+        SimpleGrid(
+            numColumns(1, md = 2),
             Modifier
-                .height(75.vh) // wanted to use 75% but that causes issues when kotlin code is too long
-                .width(90.percent)
-                .columnGap(1.cssRem)
+                .fillMaxWidth()
+                .flex(1)
+                .gap(1.cssRem)
+                .gridAutoRows(1.fr.toString())
         ) {
-            Column(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxHeight()) {
                 Label(attrs = Modifier.display(DisplayStyle.Contents).toAttrs()) {
-                    H2(TextAreaLabelStyle.toAttrs()) { Text("CSS Input") }
+                    H2(TextAreaLabelBarStyle.toAttrs()) { Text("CSS Input") }
                     TextArea(
                         cssInput,
                         TextAreaStyle.toModifier()
@@ -105,30 +107,37 @@ fun HomePage() {
                     )
                 }
             }
-            Column(Modifier.fillMaxSize().minWidth(0.px)) { // minWidth needed for text overflow
-                Row(
-                    TextAreaLabelStyle.toModifier().columnGap(1.cssRem),
-                    verticalAlignment = Alignment.CenterVertically
+            Column { // outer column needed for child's flex-grow (while keeping overflow)
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(0.px) // set to make overflow work
+                        .flexGrow(1)
                 ) {
-                    H2(
-                        Modifier
-                            .fillMaxWidth()
-                            .toAttrs()
-                    ) { Text("Kobweb Code Output") }
-
-                    var buttonText by remember { mutableStateOf("Copy") }
-                    Button(
-                        {
-                            window.navigator.clipboard.writeText(outputCode.joinToString(""))
-                            buttonText = "Copied!"
-                            window.setTimeout({ buttonText = "Copy" }, 2500)
-                        },
-                        Modifier.padding(topBottom = 0.25.cssRem, leftRight = 0.75.cssRem)
+                    Row(
+                        TextAreaLabelBarStyle.toModifier().columnGap(1.cssRem),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(buttonText)
+                        H2(
+                            Modifier
+                                .fillMaxWidth()
+                                .toAttrs()
+                        ) { Text("Kobweb Code Output") }
+
+                        var buttonText by remember { mutableStateOf("Copy") }
+                        Button(
+                            {
+                                window.navigator.clipboard.writeText(outputCode.joinToString(""))
+                                buttonText = "Copied!"
+                                window.setTimeout({ buttonText = "Copy" }, 2500)
+                            },
+                            Modifier
+                                .padding(topBottom = 0.25.cssRem, leftRight = 0.75.cssRem)
+                                .fontWeight(FontWeight.Bold)
+                        ) { Text(buttonText) }
                     }
+                    KotlinCode(outputCode, TextAreaStyle.toModifier())
                 }
-                KotlinCode(outputCode, TextAreaStyle.toModifier())
             }
         }
     }
