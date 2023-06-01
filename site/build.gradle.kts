@@ -12,7 +12,7 @@ version = "1.0-SNAPSHOT"
 kobweb {
     app {
         index {
-            description.set("Powered by Kobweb")
+            description.set("Convert CSS to Kobweb modifiers & styles")
         }
     }
 }
