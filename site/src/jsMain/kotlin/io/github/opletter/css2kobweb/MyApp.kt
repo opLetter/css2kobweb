@@ -9,6 +9,7 @@ import com.varabyte.kobweb.core.App
 import com.varabyte.kobweb.silk.SilkApp
 import com.varabyte.kobweb.silk.components.forms.ButtonStyle
 import com.varabyte.kobweb.silk.components.layout.Surface
+import com.varabyte.kobweb.silk.components.style.breakpoint.Breakpoint
 import com.varabyte.kobweb.silk.components.style.common.SmoothColorStyle
 import com.varabyte.kobweb.silk.components.style.toModifier
 import com.varabyte.kobweb.silk.init.InitSilk
@@ -28,10 +29,15 @@ fun updateTheme(ctx: InitSilkContext) {
         registerBaseStyle("body") {
             Modifier.fontFamily("system-ui", "Segoe UI", "Tahoma", "Helvetica", "sans-serif")
         }
-        registerBaseStyle("h1") {
-            Modifier
-                .fontSize(3.cssRem)
-                .marginBlock(0.5.cssRem, 0.5.cssRem)
+        registerStyle("h1") {
+            base {
+                Modifier
+                    .fontSize(2.5.cssRem)
+                    .marginBlock(0.5.cssRem, 0.5.cssRem)
+            }
+            Breakpoint.MD {
+                Modifier.fontSize(3.cssRem)
+            }
         }
         registerBaseStyle("h2") {
             Modifier.marginBlock(0.cssRem, 0.cssRem)

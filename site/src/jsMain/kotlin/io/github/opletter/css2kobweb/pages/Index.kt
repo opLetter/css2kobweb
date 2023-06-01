@@ -125,23 +125,28 @@ fun HomePage() {
                             Modifier
                                 .fillMaxWidth()
                                 .toAttrs()
-                        ) { Text("Kobweb Code Output") }
+                        ) { Text("Kobweb Code") }
 
-                        var buttonText by remember { mutableStateOf("Copy") }
-                        Button(
-                            {
-                                window.navigator.clipboard.writeText(outputCode.joinToString(""))
-                                buttonText = "Copied!"
-                                window.setTimeout({ buttonText = "Copy" }, 2500)
-                            },
-                            Modifier
-                                .padding(topBottom = 0.25.cssRem, leftRight = 0.75.cssRem)
-                                .fontWeight(FontWeight.Bold)
-                        ) { Text(buttonText) }
+                        CopyTextButton(outputCode.joinToString(""))
                     }
                     KotlinCode(outputCode, TextAreaStyle.toModifier())
                 }
             }
         }
     }
+}
+
+@Composable
+fun CopyTextButton(textToCopy: String) {
+    var buttonText by remember { mutableStateOf("Copy") }
+    Button(
+        {
+            window.navigator.clipboard.writeText(textToCopy)
+            buttonText = "Copied!"
+            window.setTimeout({ buttonText = "Copy" }, 2000)
+        },
+        Modifier
+            .padding(topBottom = 0.25.cssRem, leftRight = 0.75.cssRem)
+            .fontWeight(FontWeight.Bold)
+    ) { Text(buttonText) }
 }
