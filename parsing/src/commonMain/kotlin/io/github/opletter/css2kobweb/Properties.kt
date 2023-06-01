@@ -55,6 +55,7 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     if (propertyName == "transition") {
         val transitions = value.splitNotInParens(',').map { transition ->
             val params = transition.splitNotInParens(' ').filter { it.isNotBlank() }
+                .let { if (Arg.UnitNum.ofOrNull(it.first()) != null) listOf("all") + it else it }
             val thirdArg = params.getOrNull(2)?.let {
                 Arg.UnitNum.ofOrNull(it) ?: parseValue("transitionTimingFunction", it).args.singleOrNull()
             }

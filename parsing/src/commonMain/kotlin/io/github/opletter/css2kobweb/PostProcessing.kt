@@ -106,7 +106,7 @@ private fun Map<String, ParsedProperty>.combineTransitionModifiers(): Map<String
     val propertyValues = propertyKeys.map { this[it]?.args }
 
     val transitionGroup = transitionProperties.size > 1 &&
-            propertyValues.drop(1).filterNotNull().all { it.size == 1 }
+            propertyValues.drop(1).all { it == null || it.size == 1 }
 
     val combinedProperties = if (transitionGroup) {
         Arg.Function.transition(
@@ -115,13 +115,14 @@ private fun Map<String, ParsedProperty>.combineTransitionModifiers(): Map<String
             remainingArgs = propertyValues.drop(2).mapNotNull { it?.getOrNull(0) }
         ).let { listOf(it) }
     } else {
-        if (propertyValues.size < 2 || propertyValues.filterNotNull().any { it.size != transitionProperties.size })
+        val otherProperties = propertyValues.drop(1).filterNotNull()
+        if (otherProperties.isEmpty() || otherProperties.any { it.size != transitionProperties.size })
             return this
 
         transitionProperties.indices.map { index ->
             Arg.Function.transition(
                 property = transitionProperties[index],
-                duration = propertyValues.getOrNull(1)?.getOrNull(index),
+                duration = propertyValues[1]?.getOrNull(index),
                 remainingArgs = propertyValues.drop(2).mapNotNull { it?.getOrNull(index) }
             )
         }
