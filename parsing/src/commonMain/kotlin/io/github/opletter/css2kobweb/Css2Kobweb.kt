@@ -3,7 +3,9 @@ package io.github.opletter.css2kobweb
 import io.github.opletter.css2kobweb.constants.cssRules
 
 fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssParseResult {
-    val cleanedCss = rawCSS.replace("/\\*.*?\\*/".toRegex(), "").replace('\'', '"')
+    val cleanedCss = inlineCssVariables(rawCSS)
+        .replace("/\\*.*?\\*/".toRegex(), "")
+        .replace('\'', '"')
     val cssBySelector = parseCss(cleanedCss).ifEmpty { return getProperties(cleanedCss) }
 
     val modifiersBySelector = cssBySelector.flatMapIndexed { index, (selectors, modifier) ->
@@ -40,6 +42,19 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
         ParsedComponentStyle(styleName, modifiers)
     }
     return ParsedComponentStyles(parsedStyles)
+}
+
+private fun inlineCssVariables(css: String): String {
+    val cssVarPattern = Regex("--([\\w-]+):\\s*([^;]+);")
+    var newCss = css
+
+    // Extract and replace CSS variables in reverse order so that nested variables are replaced first
+    cssVarPattern.findAll(css).toList().reversed().forEach { matchResult ->
+        val varName = matchResult.groupValues[1].trim()
+        val varValue = matchResult.groupValues[2].trim()
+        newCss = newCss.replace("var(--$varName)", varValue)
+    }
+    return newCss
 }
 
 private fun String.baseName() = substringBefore(":").substringBefore(" ")
