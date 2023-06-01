@@ -13,11 +13,19 @@ internal fun parseCss(css: String): List<Pair<String, ParsedModifier>> {
 
 internal fun getProperties(str: String): ParsedModifier {
     val props = str.split(";").map { it.trim() }.filter { it.isNotEmpty() }
-    return props.associate { prop ->
+    return props.map { prop ->
         val (name, value) = prop.split(":", limit = 2).map { it.trim() } + "" // use empty if not present
-        parseValue(
-            propertyName = kebabToCamelCase(name),
-            value = value.lines().joinToString(" ") { it.trim() }.replace("  ", " "),
-        ).let { it.name to it }
+
+        val parsedProperty = if (name.startsWith("-")) {
+            val propertyArgs = listOf(name, value).map { Arg.Literal.withQuotesIfNecessary(it) }
+            Arg.Function("styleModifier", lambdaStatements = listOf(Arg.Function("property", propertyArgs)))
+        } else {
+            parseValue(
+                propertyName = kebabToCamelCase(name),
+                value = value.lines().joinToString(" ") { it.trim() }.replace("  ", " "),
+            )
+        }
+
+        parsedProperty.name to parsedProperty
     }.postProcessProperties().let { ParsedModifier(it) }
 }

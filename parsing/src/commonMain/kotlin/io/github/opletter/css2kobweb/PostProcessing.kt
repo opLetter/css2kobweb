@@ -3,8 +3,9 @@ package io.github.opletter.css2kobweb
 import io.github.opletter.css2kobweb.functions.position
 import io.github.opletter.css2kobweb.functions.transition
 
-internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedProperty> {
-    return replaceKeysIfEqual(setOf("width", "height"), "size")
+internal fun List<Pair<String, ParsedProperty>>.postProcessProperties(): List<ParsedProperty> {
+    return combineStyleModifiers()
+        .replaceKeysIfEqual(setOf("width", "height"), "size")
         .replaceKeysIfEqual(setOf("minWidth", "minHeight"), "minSize")
         .replaceKeysIfEqual(setOf("maxWidth", "maxHeight"), "maxSize")
         .combineDirectionalModifiers("margin")
@@ -22,6 +23,16 @@ internal fun Map<String, ParsedProperty>.postProcessProperties(): List<ParsedPro
                 ParsedProperty("fillMaxSize")
             } else it
         }
+}
+
+private fun List<Pair<String, ParsedProperty>>.combineStyleModifiers(): Map<String, ParsedProperty> {
+    val (styleModifiers, normalModifiers) = partition { it.first == "styleModifier" }
+
+    if (styleModifiers.isEmpty()) return normalModifiers.toMap()
+
+    val combinedStyleModifier = styleModifiers.flatMap { it.second.lambdaStatements }
+        .let { "styleModifier" to Arg.Function("styleModifier", lambdaStatements = it) }
+    return (normalModifiers + combinedStyleModifier).toMap()
 }
 
 private fun Map<String, ParsedProperty>.combineBackgroundPosition(): Map<String, ParsedProperty> {
