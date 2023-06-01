@@ -57,8 +57,11 @@ fun HomePage() {
     LaunchedEffect(cssInput) {
         try {
             outputCode = if (cssInput.isNotBlank()) css2kobwebAsCode(cssInput) else emptyList()
-        } catch (_: Exception) {
-            // ignore exceptions from invalid css
+        } catch (e: Exception) {
+            // exceptions are expected while css is being typed / not invalid so only log them to verbose
+            @Suppress("UNUSED_VARIABLE") val debug = e.stackTraceToString()
+            js("console.debug(debug);") // why is console.debug not a thing?
+            Unit
         }
     }
 
