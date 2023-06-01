@@ -27,7 +27,7 @@ internal data class ParseState(
     val result: List<String> = emptyList(),
 )
 
-// split on comma or space (or both?), but not in parens or quotes; credit: ChatGPT
+// split on comma, spaces, and slashes, but not in parens or quotes; credit: ChatGPT
 internal tailrec fun splitString(input: String, state: ParseState = ParseState()): List<String> {
     if (input.isEmpty()) {
         return if (state.buffer.isNotEmpty()) state.result + state.buffer else state.result
@@ -36,7 +36,7 @@ internal tailrec fun splitString(input: String, state: ParseState = ParseState()
         '"' -> state.copy(quotesCount = state.quotesCount + 1, buffer = state.buffer + ch)
         '(' -> state.copy(parensCount = state.parensCount + 1, buffer = state.buffer + ch)
         ')' -> state.copy(parensCount = state.parensCount - 1, buffer = state.buffer + ch)
-        ' ', ',' -> {
+        ' ', ',', '/' -> {
             if (state.quotesCount % 2 == 1 || state.parensCount != 0) {
                 state.copy(buffer = state.buffer + ch)
             } else {
