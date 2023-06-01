@@ -170,7 +170,7 @@ internal fun Arg.asCodeBlocks(
                 val lambdaPrefix = if (sameLine) " " else "\n\t$indents"
 
                 val lambdaLines = lambdaStatements.flatMap {
-                    listOf(CodeBlock(lambdaPrefix, CodeElement.Plain)) + it.asCodeBlocks(indentLevel)
+                    listOf(CodeBlock(lambdaPrefix, CodeElement.Plain)) + it.asCodeBlocks(indentLevel + 1)
                 }
                 addAll(lambdaLines)
                 add(CodeBlock(if (sameLine) " }" else "\n$indents}", CodeElement.Plain))
