@@ -164,11 +164,16 @@ internal fun Arg.asCodeBlocks(
             }
             if (lambdaStatements.isNotEmpty()) {
                 add(CodeBlock(" {", CodeElement.Plain))
+
+                // todo: consider making this a setting
+                val sameLine = lambdaStatements.size == 1 && lambdaStatements.single().toString().length < 50
+                val lambdaPrefix = if (sameLine) " " else "\n\t$indents"
+
                 val lambdaLines = lambdaStatements.flatMap {
-                    listOf(CodeBlock("\n\t$indents", CodeElement.Plain)) + it.asCodeBlocks(indentLevel)
+                    listOf(CodeBlock(lambdaPrefix, CodeElement.Plain)) + it.asCodeBlocks(indentLevel)
                 }
                 addAll(lambdaLines)
-                add(CodeBlock("\n$indents}", CodeElement.Plain))
+                add(CodeBlock(if (sameLine) " }" else "\n$indents}", CodeElement.Plain))
             }
         }
     }
