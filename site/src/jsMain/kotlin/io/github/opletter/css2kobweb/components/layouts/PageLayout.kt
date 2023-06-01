@@ -6,7 +6,9 @@ import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.modifiers.*
+import com.varabyte.kobweb.silk.components.style.toModifier
 import io.github.opletter.css2kobweb.components.sections.Footer
+import io.github.opletter.css2kobweb.components.styles.BackgroundGradientStyle
 import org.jetbrains.compose.web.css.percent
 import org.jetbrains.compose.web.dom.H1
 import org.jetbrains.compose.web.dom.Text
@@ -18,7 +20,9 @@ fun PageLayout(title: String, content: @Composable () -> Unit) {
     // that row. Since this box is set to *at least* 100%, the footer will always appear at least on the bottom but
     // can be pushed further down if the first row grows beyond the page.
     Box(
-        Modifier.fillMaxSize().gridTemplateRows("1fr auto"),
+        BackgroundGradientStyle.toModifier()
+            .fillMaxSize()
+            .gridTemplateRows("1fr auto"),
         contentAlignment = Alignment.TopCenter
     ) {
         Column(

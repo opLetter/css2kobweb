@@ -3,6 +3,7 @@ package io.github.opletter.css2kobweb.pages
 import androidx.compose.runtime.*
 import com.varabyte.kobweb.compose.css.FontWeight
 import com.varabyte.kobweb.compose.css.Overflow
+import com.varabyte.kobweb.compose.css.OverflowWrap
 import com.varabyte.kobweb.compose.css.Resize
 import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.foundation.layout.Row
@@ -41,7 +42,8 @@ val TextAreaStyle by ComponentStyle.base {
         .padding(topBottom = 0.5.cssRem, leftRight = 1.cssRem)
         .borderRadius(bottomLeft = 8.px, bottomRight = 8.px)
         .resize(Resize.None)
-        .overflow(Overflow.Auto)
+        .overflowY(Overflow.Auto)
+        .overflowWrap(OverflowWrap.Normal)
         .styleModifier { property("tab-size", 4) }
         .backgroundColor(colorMode.toSilkPalette().color)
         .color(colorMode.toSilkPalette().background)
@@ -107,7 +109,8 @@ fun HomePage() {
                     )
                 }
             }
-            Column { // outer column needed for child's flex-grow (while keeping overflow)
+            // outer column needed for child's flex-grow (while keeping overflowY)
+            Column(Modifier.overflowX(Overflow.Auto)) {
                 Column(
                     Modifier
                         .fillMaxWidth()
