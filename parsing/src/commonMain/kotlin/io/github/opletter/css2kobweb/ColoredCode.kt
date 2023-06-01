@@ -24,10 +24,17 @@ fun css2kobwebAsCode(rawCSS: String, extractOutCommonModifiers: Boolean = true):
             CodeBlock("${modifier.value} = ", CodeElement.Plain),
         ) + modifier.modifier.asCodeBlocks() + CodeBlock("\n", CodeElement.Plain)
     }
-    val stylesCode = result.styles.flatMap { it.asCodeBlocks() }.fold(emptyList<CodeBlock>()) { acc, codeBlock ->
-        if (acc.lastOrNull()?.type == codeBlock.type) {
-            acc.dropLast(1) + CodeBlock(acc.last().text + codeBlock.text, CodeElement.Plain)
-        } else acc + codeBlock
+    // we use a mutable list as otherwise this can become a performance bottleneck
+    val stylesCode = result.styles.flatMap { it.asCodeBlocks() }.toMutableList().apply {
+        var i = 0
+        while (i < size - 1) {
+            if (this[i].type == this[i + 1].type) {
+                this[i] = CodeBlock(this[i].text + this[i + 1].text, CodeElement.Plain)
+                removeAt(i + 1)
+            } else {
+                i++
+            }
+        }
     }
     return globalModifierCode + stylesCode
 }
