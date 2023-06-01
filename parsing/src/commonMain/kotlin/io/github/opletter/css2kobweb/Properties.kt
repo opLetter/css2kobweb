@@ -220,7 +220,8 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
 private fun classNamesFromProperty(propertyName: String): String {
     return when (propertyName) {
         "display" -> "DisplayStyle"
-
+        "overflowY", "overflowX" -> "Overflow"
+        "float" -> "CSSFloat"
         "border", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight",
         "outline", "outlineStyle",
         -> "LineStyle"

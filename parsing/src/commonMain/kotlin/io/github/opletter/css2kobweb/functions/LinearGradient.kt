@@ -9,6 +9,12 @@ internal fun Arg.Function.Companion.linearGradient(value: String): Arg.Function 
     val argsAsColors = parts.mapNotNull { Arg.asColorOrNull(it) }
     val firstAsUnitNum = Arg.UnitNum.ofOrNull(parts[0], zeroUnit = "deg")
 
+    val (x, y) = parts[0].split(' ').partition { it == "left" || it == "right" }
+    val direction = Arg.Property(
+        "LinearGradient.Direction",
+        (y + x).joinToString("") { kebabToPascalCase(it) },
+    )
+
     if (parts.size == 2 && argsAsColors.size == 2) {
         return linearGradientOf(argsAsColors[0], argsAsColors[1])
     }
@@ -17,19 +23,12 @@ internal fun Arg.Function.Companion.linearGradient(value: String): Arg.Function 
             return linearGradientOf(firstAsUnitNum, argsAsColors[0], argsAsColors[1])
         }
         if (Arg.asColorOrNull(parts[0].substringBefore(' ')) == null) {
-            val direction = Arg.Property(
-                "LinearGradient.Direction",
-                kebabToPascalCase(parts[0].replace(" ", "-")),
-            )
             return linearGradientOf(direction, argsAsColors[0], argsAsColors[1])
         }
     }
 
     val mainArg = if (Arg.asColorOrNull(parts[0].substringBefore(' ')) == null) {
-        firstAsUnitNum ?: Arg.Property(
-            "LinearGradient.Direction",
-            kebabToPascalCase(parts[0].replace(" ", "-")),
-        )
+        firstAsUnitNum ?: direction
     } else null
 
     val lambdaFunctions = gradientColorStopList(parts.drop(if (mainArg == null) 0 else 1))

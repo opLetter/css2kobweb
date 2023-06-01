@@ -14,7 +14,7 @@ internal fun parseCss(css: String): List<Pair<String, ParsedModifier>> {
 }
 
 internal fun getProperties(str: String): ParsedModifier {
-    val props = str.split(";").map { it.trim() }.filter { it.isNotEmpty() }
+    val props = str.splitNotInParens(';').map { it.trim() }.filter { it.isNotEmpty() }
     return props.mapNotNull { prop ->
         val (name, value) = prop.split(":", limit = 2).map { it.trim() } + "" // use empty if not present
 
@@ -26,7 +26,12 @@ internal fun getProperties(str: String): ParsedModifier {
         } else {
             parseValue(
                 propertyName = kebabToCamelCase(name),
-                value = value.lines().joinToString(" ") { it.trim() }.replace("  ", " "),
+                value = value
+                    .replace("!important", "")
+                    .lines()
+                    .filterNot { it.startsWith("@import") || it.startsWith("@charset") || it.startsWith("@namespace") }
+                    .joinToString(" ") { it.trim() }
+                    .replace("  ", " "),
             )
         }
 

@@ -58,6 +58,7 @@ private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String
     val existingBackground = this["background"]
     val existingBackgroundArgs = existingBackground?.args
         ?.dropWhile { !it.toString().startsWith("CSS") } // filter color arg
+        ?.ifEmpty { null }
 
     val propertyKeys = setOf(
         "backgroundImage",

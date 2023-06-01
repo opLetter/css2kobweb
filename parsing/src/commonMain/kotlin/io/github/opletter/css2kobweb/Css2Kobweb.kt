@@ -4,8 +4,8 @@ import io.github.opletter.css2kobweb.constants.cssRules
 
 fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssParseResult {
     val cleanedCss = inlineCssVariables(rawCSS)
-        .replace("/\\*.*?\\*/".toRegex(), "")
-        .replace('\'', '"')
+        .replace("/\\*[\\s\\S]*?\\*/".toRegex(), "") // remove comments
+        .replace('\'', '"') // to simplify parsing
     val cssBySelector = parseCss(cleanedCss).ifEmpty { return getProperties(cleanedCss) }
 
     val modifiersBySelector = cssBySelector.flatMapIndexed { index, (selectors, modifier) ->

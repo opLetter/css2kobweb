@@ -26,7 +26,7 @@ sealed class Arg(private val value: String) {
             fun ofOrNull(str: String, zeroUnit: String = "px"): UnitNum? {
                 if (str == "0") return UnitNum(0, zeroUnit)
 
-                val potentialUnit = str.dropWhile { it.isDigit() || it == '.' || it == '-' || it == '+' }
+                val potentialUnit = str.dropWhile { it.isDigit() || it == '.' || it == '-' || it == '+' }.lowercase()
                 val unit = units[potentialUnit]
                 if (unit != null) {
                     val num = str.dropLast(potentialUnit.length)
