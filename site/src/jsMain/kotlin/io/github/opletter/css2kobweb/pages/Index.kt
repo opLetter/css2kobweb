@@ -23,8 +23,10 @@ import io.github.opletter.css2kobweb.CodeBlock
 import io.github.opletter.css2kobweb.components.widgets.KotlinCode
 import io.github.opletter.css2kobweb.css2kobwebAsCode
 import kotlinx.browser.window
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import kotlin.time.Duration.Companion.milliseconds
 
 val TextAreaStyle by ComponentStyle.base {
     Modifier
@@ -56,6 +58,8 @@ fun HomePage() {
     // get code here to avoid lagging onInput
     LaunchedEffect(cssInput) {
         try {
+            if (cssInput.length > 5000) // debounce after semi-arbitrarily chosen number of characters
+                delay(50.milliseconds)
             outputCode = if (cssInput.isNotBlank()) css2kobwebAsCode(cssInput) else emptyList()
         } catch (e: Exception) {
             // exceptions are expected while css is being typed / not invalid so only log them to verbose
