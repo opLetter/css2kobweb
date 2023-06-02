@@ -13,7 +13,7 @@ internal fun Arg.Function.Companion.positionOrNull(value: String): Arg? {
     return when (position.size) {
         1 -> {
             val arg = position.single()
-            Arg.UnitNum.ofOrNull(arg)?.let { Arg.Function("CSSPosition", listOf(it)) }
+            Arg.UnitNum.ofOrNull(arg)?.let { Arg.Function("CSSPosition", it) }
                 ?: Arg.Property("CSSPosition", kebabToPascalCase(arg))
         }
 
@@ -95,4 +95,4 @@ internal fun Arg.Function.Companion.position(value: String): Arg =
     positionOrNull(value) ?: error("Invalid position: $value")
 
 private fun edge(name: String) = Arg.Property("Edge", kebabToPascalCase(name))
-private fun edge(name: String, unit: Arg.UnitNum) = Arg.Function("Edge.${kebabToPascalCase(name)}", listOf(unit))
+private fun edge(name: String, unit: Arg.UnitNum) = Arg.Function("Edge.${kebabToPascalCase(name)}", unit)

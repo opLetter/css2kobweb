@@ -45,7 +45,7 @@ private fun Map<String, ParsedProperty>.combineBackgroundPosition(): Map<String,
 
     val positionArgs = positions.first().indices.map { index ->
         val cssPosition = Arg.Function.position(positions.joinToString(" ") { it[index] })
-        Arg.Function("BackgroundPosition.of", listOf(cssPosition))
+        Arg.Function("BackgroundPosition.of", cssPosition)
     }
     val newProperty = ParsedProperty("backgroundPosition", positionArgs)
     return (this - keys) + (newProperty.name to newProperty)
@@ -84,7 +84,7 @@ private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String
         val args = propertyValues.map { (prop, args) ->
             val originalArg = args[index]
             val adjustedArg = if (prop == "backgroundImage" && originalArg is Arg.Function)
-                Arg.Function("BackgroundImage.of", listOf(originalArg))
+                Arg.Function("BackgroundImage.of", originalArg)
             else originalArg
 
             Arg.NamedArg(prop.getArgName(), adjustedArg)

@@ -67,6 +67,8 @@ sealed class Arg(private val value: String) {
             name + argsStr + lambdaStr
         }
     ) {
+        constructor(name: String, arg: Arg) : this(name, listOf(arg))
+
         internal companion object // for extensions
     }
 

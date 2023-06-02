@@ -99,13 +99,13 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     if (propertyName == "backgroundPosition" && value !in GlobalValues) {
         val args = value.splitNotInParens(',').map {
             if (it in GlobalValues) parseValue(propertyName, it).args.single()
-            else Arg.Function("BackgroundPosition.of", listOf(Arg.Function.position(it)))
+            else Arg.Function("BackgroundPosition.of", Arg.Function.position(it))
         }
         return ParsedProperty(propertyName, args)
     }
     if (propertyName == "backgroundPositionX" || propertyName == "backgroundPositionY") {
         // will be handled in postProcessing, preserve values for now
-        return ParsedProperty(propertyName, listOf(Arg.Literal(value)))
+        return ParsedProperty(propertyName, Arg.Literal(value))
     }
     if (propertyName == "backgroundSize") {
         val args = value.splitNotInParens(',').map { subValue ->
@@ -177,7 +177,7 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
 
         if (prop.startsWith("url(")) {
             val contents = parenContents(prop)
-            return@map Arg.Function("url", listOf(Arg.Literal.withQuotesIfNecessary(contents)))
+            return@map Arg.Function("url", Arg.Literal.withQuotesIfNecessary(contents))
         }
 
         if (prop.startsWith('"')) {
@@ -247,7 +247,7 @@ private fun parseBackground(value: String): List<Arg> {
             }
             if (image != null) {
                 val imageArg = parseValue("backgroundImage", image).args.single()
-                    .let { if (it is Arg.Function) Arg.Function("BackgroundImage.of", listOf(it)) else it }
+                    .let { if (it is Arg.Function) Arg.Function("BackgroundImage.of", it) else it }
                 add(Arg.NamedArg("image", imageArg))
             }
 
@@ -286,7 +286,7 @@ private fun parseBackground(value: String): List<Arg> {
                     ?.let { Arg.Function("BackgroundSize.of", it) }
                     ?: parseValue("backgroundSize", otherProps[slashIndex + 1]).args.single()
 
-                add(Arg.NamedArg("position", Arg.Function("BackgroundPosition.of", listOf(position))))
+                add(Arg.NamedArg("position", Arg.Function("BackgroundPosition.of", position)))
                 add(Arg.NamedArg("size", size))
             } else if (otherProps.isNotEmpty()) {
                 val position = (0..otherProps.size - 2).firstNotNullOfOrNull {
@@ -296,7 +296,7 @@ private fun parseBackground(value: String): List<Arg> {
                 ?: Arg.Function.positionOrNull(otherProps.last())
 
                 position?.let {
-                    add(Arg.NamedArg("position", Arg.Function("BackgroundPosition.of", listOf(it))))
+                    add(Arg.NamedArg("position", Arg.Function("BackgroundPosition.of", it)))
                 }
             }
         }

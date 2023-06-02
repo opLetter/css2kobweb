@@ -50,7 +50,7 @@ private fun hslOrNull(prop: String): Arg.Function? {
 
 internal fun Arg.Companion.asColorOrNull(value: String): Arg? {
     if (value.startsWith("#") && ' ' !in value.trim()) {
-        return Arg.Function("Color.rgb", listOf(Arg.Hex(value.drop(1))))
+        return Arg.Function("Color.rgb", Arg.Hex(value.drop(1)))
     }
     val color = colors.firstOrNull { it.lowercase() == value }
     if (color != null) {
