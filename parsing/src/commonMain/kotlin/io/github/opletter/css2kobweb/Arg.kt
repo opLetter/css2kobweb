@@ -3,7 +3,7 @@ package io.github.opletter.css2kobweb
 import io.github.opletter.css2kobweb.constants.units
 
 sealed class Arg(private val value: String) {
-    class Literal(val value: String) : Arg(value) {
+    class Literal(value: String) : Arg(value) {
         companion object {
             fun withQuotesIfNecessary(value: String): Literal {
                 val str = if (value.firstOrNull() == '"') value else "\"$value\""
@@ -12,44 +12,75 @@ sealed class Arg(private val value: String) {
         }
     }
 
-    sealed class Number(val value: String) : Arg(value)
+    sealed class FancyNumber(value: String) : Arg(value)
+    class Hex(value: String) : FancyNumber("0x$value")
+    class Float(value: Number) : FancyNumber("${value}f")
 
-    class RawNumber(value: kotlin.Number) : Number(value.toString()), CalcNumber
-    class Hex(value: String) : Number("0x$value")
-    class Float(value: kotlin.Number) : Number("${value}f")
+    /** A number that can be used in a calculation */
+    sealed class CalcNumber(value: String) : Arg(value)
 
-    // technically this behaves the same as [Property], but t be more explicit we treat it as a separate type
-    class UnitNum(value: kotlin.Number, val type: String) :
-        Arg("${if (value.toDouble() < 0.0) "($value)" else "$value"}.$type"), CalcNumber {
+    class RawNumber(value: Number) : CalcNumber(value.toString())
+
+    sealed class UnitNum(value: String) : CalcNumber(value) {
+        class Normal(value: Number, val type: String) :
+            UnitNum("${if (value.toDouble() < 0.0) "($value)" else "$value"}.$type")
+
+        class Calc(val arg1: CalcNumber, val arg2: CalcNumber, val operation: Char) : UnitNum(run {
+            val arg1Str = arg1.let { if (it is Calc) "($it)" else "$it" }
+            val arg2Str = arg2.let { if (it is Calc) "($it)" else "$it" }
+            "$arg1Str $operation $arg2Str"
+        })
 
         companion object {
-            fun ofOrNull(str: String, zeroUnit: String = "px"): UnitNum? {
-                if (str == "0") return UnitNum(0, zeroUnit)
+            private fun String.prependCalcToParens(): String = fold("") { result, c ->
+                result + if (c == '(' && result.takeLast(4) != "calc") "calc$c" else c
+            }
+
+            private fun parseCalcNum(str: String, zeroUnit: String): CalcNumber? {
+                if (str.startsWith("calc(")) {
+                    // whitespace isn't required for / & *, so we add it for parsing (extra space gets trimmed anyway)
+                    val expr = parenContents(str)
+                        .replace("/", " / ")
+                        .replace("*", " * ")
+
+                    val parts = expr.splitNotInParens(' ')
+
+                    return when {
+                        parts.size == 1 -> parseCalcNum(parts.single(), zeroUnit)
+
+                        parts.size > 3 -> {
+                            val newCalc = parts.take(3).joinToString(" ", prefix = "calc(", postfix = ") ") +
+                                    parts.drop(3).joinToString(" ")
+                            parseCalcNum("calc($newCalc)", zeroUnit)
+                        }
+
+                        parts.size == 3 -> {
+                            val (arg1, operation, arg2) = parts
+                            Calc(parseCalcNum(arg1, zeroUnit)!!, parseCalcNum(arg2, zeroUnit)!!, operation.single())
+                        }
+
+                        else -> null
+                    }
+                }
+
+                if (str == "0") return Normal(0, zeroUnit)
 
                 val potentialUnit = str.dropWhile { it.isDigit() || it == '.' || it == '-' || it == '+' }.lowercase()
                 val unit = units[potentialUnit]
                 if (unit != null) {
                     val num = str.dropLast(potentialUnit.length)
-                    return UnitNum(num.toIntOrNull() ?: num.toDouble(), unit)
+                    return Normal(num.toIntOrNull() ?: num.toDouble(), unit)
                 }
-                return null
+                return RawNumber(str.toIntOrNull() ?: str.toDouble())
             }
 
-            fun of(str: String, zeroUnit: String = "px"): UnitNum {
-                return ofOrNull(str, zeroUnit) ?: throw IllegalArgumentException("Not a unit number: $str")
-            }
+            fun ofOrNull(str: String, zeroUnit: String = "px"): UnitNum? =
+                parseCalcNum(str.prependCalcToParens(), zeroUnit) as? UnitNum
+
+            fun of(str: String, zeroUnit: String = "px"): UnitNum =
+                ofOrNull(str, zeroUnit) ?: throw IllegalArgumentException("Not a unit number: $str")
         }
     }
-
-    sealed interface CalcNumber {
-        val arg: Arg
-            get() = when (this) {
-                is RawNumber -> this
-                is UnitNum -> this
-            }
-    }
-
-    class Calc(val arg1: CalcNumber, val arg2: CalcNumber, val operation: Char) : Arg("$arg1 $operation $arg2")
 
     class Property(val className: String, val value: String) : Arg("$className.$value")
 

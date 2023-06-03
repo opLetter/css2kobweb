@@ -112,16 +112,17 @@ internal fun ParsedModifier.asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> 
 internal fun Arg.asCodeBlocks(
     indentLevel: Int,
     functionType: CodeElement = CodeElement.Plain,
+    surroundWithParens: Boolean = false,
 ): List<CodeBlock> {
     return when (this) {
-        is Arg.Literal -> listOf(CodeBlock(value, CodeElement.String))
-        is Arg.Number -> listOf(CodeBlock(value, CodeElement.Number))
+        is Arg.Literal -> listOf(CodeBlock(toString(), CodeElement.String))
+        is Arg.FancyNumber, is Arg.RawNumber -> listOf(CodeBlock(toString(), CodeElement.Number))
         is Arg.Property -> listOf(
             CodeBlock("$className.", CodeElement.Plain),
             CodeBlock(value, CodeElement.Property),
         )
 
-        is Arg.UnitNum -> {
+        is Arg.UnitNum.Normal -> {
             val num = toString().substringBeforeLast(".")
             val numCode = if (num.first() == '(') {
                 listOf(
@@ -137,9 +138,19 @@ internal fun Arg.asCodeBlocks(
             )
         }
 
-        is Arg.Calc -> {
-            arg1.arg.asCodeBlocks(indentLevel) + CodeBlock(" $operation ", CodeElement.Plain) +
-                    arg2.arg.asCodeBlocks(indentLevel)
+        is Arg.UnitNum.Calc -> {
+            val expression = buildList {
+                addAll(arg1.asCodeBlocks(indentLevel, surroundWithParens = true))
+                add(CodeBlock(" $operation ", CodeElement.Plain))
+                addAll(arg2.asCodeBlocks(indentLevel, surroundWithParens = true))
+            }
+            if (surroundWithParens) {
+                buildList {
+                    add(CodeBlock("(", CodeElement.Plain))
+                    addAll(expression)
+                    add(CodeBlock(")", CodeElement.Plain))
+                }
+            } else expression
         }
 
         is Arg.NamedArg -> listOf(CodeBlock("$name = ", CodeElement.NamedArg)) + value.asCodeBlocks(indentLevel)

@@ -31,7 +31,7 @@ private fun hslOrNull(prop: String): Arg.Function? {
 
     val params = nums.take(3).mapIndexed { index, s ->
         if (index == 0) {
-            Arg.UnitNum.ofOrNull(s, "deg") ?: Arg.UnitNum(s.toIntOrNull() ?: s.toDouble(), "deg")
+            Arg.UnitNum.ofOrNull(s, "deg") ?: Arg.UnitNum.of(s + "deg")
         } else {
             Arg.UnitNum.ofOrNull(s, "percent") ?: Arg.Float(s.toFloat())
         }
