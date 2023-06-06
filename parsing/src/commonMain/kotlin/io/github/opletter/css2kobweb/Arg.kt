@@ -71,7 +71,7 @@ sealed class Arg(private val value: String) {
                     val num = str.dropLast(potentialUnit.length)
                     return Normal(num.toIntOrNull() ?: num.toDouble(), unit)
                 }
-                return RawNumber(str.toIntOrNull() ?: str.toDouble())
+                return (str.toIntOrNull() ?: str.toDoubleOrNull())?.let { RawNumber(it) }
             }
 
             fun ofOrNull(str: String, zeroUnit: String = "px"): UnitNum? =
