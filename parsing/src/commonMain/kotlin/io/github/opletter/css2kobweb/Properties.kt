@@ -6,51 +6,6 @@ import kotlin.math.min
 
 private val GlobalValues = setOf("initial", "inherit", "unset", "revert")
 
-internal fun kebabToPascalCase(str: String): String {
-    return str.split('-').joinToString("") { prop ->
-        prop.replaceFirstChar { it.titlecase() }
-    }
-}
-
-internal fun kebabToCamelCase(str: String): String {
-    return kebabToPascalCase(str).replaceFirstChar { it.lowercase() }
-}
-
-internal fun parenContents(str: String): String {
-    return str.substringAfter('(').substringBeforeLast(')').trim()
-}
-
-internal data class ParseState(
-    val quotesCount: Int = 0,
-    val parensCount: Int = 0,
-    val buffer: String = "",
-    val result: List<String> = emptyList(),
-)
-
-// split on comma, spaces, and slashes, but not in parens or quotes; credit: ChatGPT
-internal tailrec fun splitString(input: String, state: ParseState = ParseState()): List<String> {
-    if (input.isEmpty()) {
-        return if (state.buffer.isNotEmpty()) state.result + state.buffer else state.result
-    }
-    val nextState = when (val ch = input.first()) {
-        '"' -> state.copy(quotesCount = state.quotesCount + 1, buffer = state.buffer + ch)
-        '(' -> state.copy(parensCount = state.parensCount + 1, buffer = state.buffer + ch)
-        ')' -> state.copy(parensCount = state.parensCount - 1, buffer = state.buffer + ch)
-        ' ', ',', '/' -> {
-            if (state.quotesCount % 2 == 1 || state.parensCount != 0) {
-                state.copy(buffer = state.buffer + ch)
-            } else {
-                if (state.buffer.isNotEmpty()) {
-                    state.copy(buffer = "", result = state.result + state.buffer)
-                } else state
-            }
-        }
-
-        else -> state.copy(buffer = state.buffer + ch)
-    }
-    return splitString(input.drop(1), nextState)
-}
-
 internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     if (propertyName == "transition") {
         val transitions = value.splitNotInParens(',').map { transition ->
@@ -71,7 +26,7 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     }
     if (propertyName == "transform") {
         val statements = value.splitNotInParens(' ').map { func ->
-            val args = splitString(func.substringAfter('(').substringBeforeLast(')')).map {
+            val args = parenContents(func).splitNotInParens(',').map {
                 if (it.toDoubleOrNull() == 0.0 && (func.startsWith("matrix") || func.startsWith("scale")))
                     Arg.RawNumber(0)
                 else
@@ -127,7 +82,7 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
         return ParsedProperty(propertyName, args)
     }
 
-    return splitString(value).map { prop ->
+    return value.splitNotBetween('(', ')', setOf(' ', ',', '/')).map { prop ->
         if (prop in GlobalValues) {
             return@map Arg.Property(classNamesFromProperty(propertyName), kebabToPascalCase(prop))
         }

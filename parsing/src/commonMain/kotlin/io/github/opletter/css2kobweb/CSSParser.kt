@@ -1,15 +1,15 @@
 package io.github.opletter.css2kobweb
 
 internal fun parseCss(css: String): List<Pair<String, ParsedModifier>> {
-    @Suppress("RegExpRedundantEscape") // redundancy needed for JS
-    val regex = "([^{}]+)\\s*\\{\\s*([^{}]+)\\s*\\}".toRegex()
-    val matches = regex.findAll(css)
-    return matches.toList().mapNotNull { matchResult ->
-        val selector = matchResult.groupValues[1].trim()
-        val properties = getProperties(matchResult.groupValues[2])
-            .also { if (it.properties.isEmpty()) return@mapNotNull null } // may happen if all were css vars
+    return css.splitIntoCssBlocks().mapNotNull { (selector, properties) ->
+        val subBlocks = properties.splitIntoCssBlocks()
 
-        selector to properties
+        if (subBlocks.isEmpty()) {
+            val parsedProperties = getProperties(properties)
+            if (parsedProperties.properties.isEmpty()) return@mapNotNull null // may happen if all were css vars
+
+            selector to parsedProperties
+        } else null // TODO: handle nested blocks
     }
 }
 
@@ -37,4 +37,20 @@ internal fun getProperties(str: String): ParsedModifier {
 
         parsedProperty.name to parsedProperty
     }.postProcessProperties().let { ParsedModifier(it) }
+}
+
+/**
+ * Returns a list of pairs of the form (selector, block content).
+ * Note that this only gets the first level of selectors, so nested selectors will be kept within their parent.
+ */
+private fun String.splitIntoCssBlocks(): List<Pair<String, String>> {
+    return splitNotBetween('{', '}', setOf('{'))
+        .filter { it.isNotBlank() }
+        .fold(listOf<Pair<String, String>>()) { acc, str ->
+            val prev = acc.lastOrNull() ?: ("" to "")
+            val properties = str.substringBeforeLast("}").trim()
+            val nextSelector = str.substringAfterLast("}").trim()
+
+            acc.dropLast(1) + (prev.first to properties) + (nextSelector to "")
+        }.drop(1).dropLast(1)
 }
