@@ -8,11 +8,15 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
         .replace('\'', '"') // to simplify parsing
 
     val cssBySelector = parseCss(cleanedCss).ifEmpty {
-        return if (":" in cleanedCss) getProperties(cleanedCss) else parseValue("", cleanedCss)
+        return if (":" in cleanedCss)
+            ParsedStyleBlock(getProperties(cleanedCss))
+        else parseValue("", cleanedCss)
     }
 
-    val modifiersBySelector = cssBySelector.flatMapIndexed { index, (selectors, modifier) ->
-        val allSelectors = selectors.splitNotInParens(',')
+    val parsedModifiers = cssBySelector.filterIsInstance<ParsedStyleBlock>()
+
+    val modifiersBySelector = parsedModifiers.flatMapIndexed { index, modifier ->
+        val allSelectors = modifier.label.splitNotInParens(',')
 
         allSelectors.associateWith { _ ->
             if (extractOutCommonModifiers && allSelectors.distinctBy { it.baseName() }.size != 1) {
@@ -32,7 +36,7 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
         }
     }.toMap()
 
-    val styles = cssBySelector.flatMap { it.first.splitNotInParens(',') }.groupBy { it.baseName() }
+    val styles = parsedModifiers.flatMap { it.label.splitNotInParens(',') }.groupBy { it.baseName() }
     val parsedStyles = styles.map { (baseName, selectors) ->
         val modifiers = selectors.associate { selector ->
             val cleanedUpName = if (selector == baseName) "base"
@@ -43,8 +47,11 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
         val styleName = kebabToPascalCase(baseName.substringAfter(".").substringAfter("#"))
             .replace("*", "All")
         ParsedComponentStyle(styleName, modifiers)
-    }
-    return ParsedComponentStyles(parsedStyles)
+    }.let { ParsedComponentStyles(it) }
+
+    val keyframes = cssBySelector.filterIsInstance<ParsedKeyframes>()
+
+    return if (keyframes.isEmpty()) parsedStyles else ParsedBlocks(parsedStyles, keyframes)
 }
 
 private fun inlineCssVariables(css: String): String {

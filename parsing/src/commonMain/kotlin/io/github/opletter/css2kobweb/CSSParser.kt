@@ -1,19 +1,24 @@
 package io.github.opletter.css2kobweb
 
-internal fun parseCss(css: String): List<Pair<String, ParsedModifier>> {
+internal fun parseCss(css: String): List<CssParseResult> {
     return css.splitIntoCssBlocks().mapNotNull { (selector, properties) ->
         val subBlocks = properties.splitIntoCssBlocks()
 
         if (subBlocks.isEmpty()) {
-            val parsedProperties = getProperties(properties)
-            if (parsedProperties.properties.isEmpty()) return@mapNotNull null // may happen if all were css vars
-
-            selector to parsedProperties
-        } else null // TODO: handle nested blocks
+            val modifier = ParsedStyleBlock(getProperties(properties), selector)
+            if (modifier.properties.isEmpty())
+                return@mapNotNull null // may happen if all were css vars
+            modifier
+        } else if (selector.startsWith("@keyframes")) {
+            val modifiers = subBlocks.map { (subSelector, subProperties) ->
+                ParsedStyleBlock(getProperties(subProperties), subSelector)
+            }
+            ParsedKeyframes(selector.substringAfter("@keyframes").trim(), modifiers)
+        } else null // TODO: handle @media and maybe some other nested blocks?
     }
 }
 
-internal fun getProperties(str: String): ParsedModifier {
+internal fun getProperties(str: String): List<ParsedProperty> {
     val props = str.splitNotInParens(';').map { it.trim() }.filter { it.isNotEmpty() }
     return props.mapNotNull { prop ->
         val (name, value) = prop.split(":", limit = 2).map { it.trim() } + "" // use empty if not present
@@ -36,7 +41,7 @@ internal fun getProperties(str: String): ParsedModifier {
         }
 
         parsedProperty.name to parsedProperty
-    }.postProcessProperties().let { ParsedModifier(it) }
+    }.postProcessProperties()
 }
 
 /**

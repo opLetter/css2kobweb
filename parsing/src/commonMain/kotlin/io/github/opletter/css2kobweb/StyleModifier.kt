@@ -4,9 +4,9 @@ package io.github.opletter.css2kobweb
 sealed class StyleModifier(val value: String) {
     sealed class Normal(value: String) : StyleModifier(value)
 
-    class Inline(val parsedModifier: ParsedModifier) : Normal(parsedModifier.toString())
-    class Global(key: String, val modifier: ParsedModifier) : Normal(key)
-    class Local(key: String, val modifier: ParsedModifier) : Normal(key)
+    class Inline(val parsedModifier: ParsedStyleBlock) : Normal(parsedModifier.toString())
+    class Global(key: String, val modifier: ParsedStyleBlock) : Normal(key)
+    class Local(key: String, val modifier: ParsedStyleBlock) : Normal(key)
 
     class Composite(val modifiers: List<Normal>) : StyleModifier(run {
         val (inlineModifiers, sharedModifiers) = modifiers.partition { it is Inline }
@@ -19,10 +19,30 @@ sealed class StyleModifier(val value: String) {
     })
 
     override fun toString(): String = value
-    open operator fun plus(other: Normal): Composite {
+
+    operator fun plus(other: Normal): Composite {
         return when (this) {
             is Composite -> Composite(modifiers + other)
             is Normal -> Composite(listOf(this, other))
+        }
+    }
+
+    fun asCodeBlocks(indentLevel: Int = 0): List<CodeBlock> {
+        val indents = "\t".repeat(indentLevel)
+        return when (this) {
+            is Global, is Local -> listOf(CodeBlock(indents + value, CodeElement.Plain))
+            is Inline -> parsedModifier.asCodeBlocks(indentLevel)
+            is Composite -> {
+                val (inlineModifiers, sharedModifiers) = modifiers.partition { it is Inline }
+                val start = sharedModifiers.firstOrNull()?.let { style ->
+                    indents + style.toString() +
+                            sharedModifiers.drop(1).joinToString("") { "\n\t$indents.then($it)" }
+                } ?: "${indents}Modifier"
+                val end = inlineModifiers.flatMap { style ->
+                    style.asCodeBlocks(indentLevel).let { if (style is Inline) it.drop(1) else it }
+                }
+                listOf(CodeBlock(start, CodeElement.Plain)) + end
+            }
         }
     }
 }
