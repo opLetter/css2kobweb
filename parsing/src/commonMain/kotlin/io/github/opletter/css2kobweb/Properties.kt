@@ -146,11 +146,7 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
 
             return@map Arg.Function(
                 "$prefix$functionName",
-                parseValue(functionPropertyName, parenContents(prop)).args.map {
-                    if (it.toString() == "0.px" && functionName in filterFunctions)
-                        Arg.RawNumber(0)
-                    else it
-                }
+                parseValue(functionPropertyName, parenContents(prop)).args
             )
         }
 
