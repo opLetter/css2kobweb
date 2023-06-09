@@ -320,11 +320,6 @@ private fun parseAnimation(value: String): List<Arg> {
             val otherProps = parts.filter { Arg.UnitNum.ofOrNull(it) == null } -
                     setOfNotNull(timing, iterationCount.toString(), direction, fillMode, playState)
 
-            println("otherProps: $otherProps")
-            println("timing: $timing")
-            println("x: ${setOfNotNull(timing, iterationCount.toString(), direction, fillMode, playState)}")
-            println("y: $parts")
-
             val name = otherProps.lastOrNull { it.isNotBlank() } // search from end per css best practice
             if (name != null) {
                 add(0, Arg.NamedArg("name", parseValue("animationName", name).args.single()))
