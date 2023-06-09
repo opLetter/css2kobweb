@@ -74,14 +74,13 @@ private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String
     val argNames = propertyKeys.map { it.getArgName() }
 
     val propertyValues = propertyKeys.mapNotNull { prop ->
-        this[prop]?.let { prop to it.args }
+        this[prop]?.let { prop to it.args.reversed() } // args order reversed as in kobweb
     }.toMap()
 
     if (propertyValues.isEmpty() || (existingBackgroundArgs == null && propertyValues.values.all { it.size == 1 }))
         return this
 
-    // reversed as in kobweb
-    val backgroundProperties = propertyValues.values.first().indices.reversed().map { index ->
+    val backgroundProperties = propertyValues.values.first().indices.map { index ->
         val args = propertyValues.map { (prop, args) ->
             val originalArg = args[index]
             val adjustedArg = if (prop == "backgroundImage" && originalArg is Arg.Function)
