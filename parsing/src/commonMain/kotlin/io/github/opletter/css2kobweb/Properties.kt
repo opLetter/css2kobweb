@@ -202,8 +202,12 @@ private fun parseBackground(value: String): List<Arg> {
                         || it.startsWith("radial-gradient(") || it.startsWith("conic-gradient(")
             }
             if (image != null) {
-                val imageArg = parseValue("backgroundImage", image).args.single()
-                    .let { if (it is Arg.Function) Arg.Function("BackgroundImage.of", it) else it }
+                val imageArg = parseValue("backgroundImage", image).args.single().let {
+                    if (it is Arg.Function) {
+                        if (it.name == "url") Arg.Function("BackgroundImage.of", it)
+                        else Arg.ExtensionCall(it, Arg.Function("toImage"))
+                    } else it
+                }
                 add(Arg.NamedArg("image", imageArg))
             }
 

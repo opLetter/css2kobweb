@@ -83,9 +83,11 @@ private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String
     val backgroundProperties = propertyValues.values.first().indices.map { index ->
         val args = propertyValues.map { (prop, args) ->
             val originalArg = args[index]
-            val adjustedArg = if (prop == "backgroundImage" && originalArg is Arg.Function)
-                Arg.Function("BackgroundImage.of", originalArg)
-            else originalArg
+            val adjustedArg = if (prop == "backgroundImage" && originalArg is Arg.Function) {
+                if (originalArg.name == "url")
+                    Arg.Function("BackgroundImage.of", originalArg)
+                else Arg.ExtensionCall(originalArg, Arg.Function("toImage"))
+            } else originalArg
 
             Arg.NamedArg(prop.getArgName(), adjustedArg)
         }
@@ -128,17 +130,29 @@ private fun Map<String, ParsedProperty>.combineAnimationModifiers(): Map<String,
     // kobweb currently only supports specifying the whole animation as a single property, so we have to handle
     // all cases where one of these properties is individually specified in css. If this changes,
     // then this return condition can be expanded to match the one for [background]
-    if (propertyValues.isEmpty())
+
+    // IMPORTANT: we currently take advantage of the above fact by using combineAnimationModifiers
+    // as the sole place where `CSSAnimation(...)` gets transformed into 'Name.toAnimation(...)'
+    // If the `animation-...` properties are ever supported individually, this would need to be accounted for
+    if (propertyValues.isEmpty() && existingAnimation == null)
         return this
 
-    val animationProperties = propertyValues.values.first().indices.map { index ->
+    val animationProperties = (propertyValues.values.firstOrNull()?.indices ?: (0..0)).map { index ->
         val args = propertyValues.map { (prop, args) ->
             Arg.NamedArg(prop.getArgName(), args[index])
         }
         val existingArgs = (existingAnimationArgs?.get(index) as Arg.Function?)?.args.orEmpty()
         val combinedArgs = (existingArgs + args).sortedBy { argNames.indexOf(it.toString().substringBefore(" ")) }
 
-        Arg.Function("CSSAnimation", combinedArgs)
+        val (name, otherArgs) = combinedArgs.partition { it.toString().startsWith("name =") }
+
+        name.singleOrNull()?.let { arg ->
+            val nameStr = arg.toString().removeSurrounding("name = \"", "\"").let { kebabToPascalCase(it) }
+            Arg.ExtensionCall(
+                Arg.Property(null, nameStr),
+                Arg.Function("toAnimation", listOf(Arg.Property(null, "colorMode")) + otherArgs)
+            )
+        } ?: Arg.Function("CSSAnimation", combinedArgs)
     }
     val newProperty = ParsedProperty("animation", animationProperties)
 

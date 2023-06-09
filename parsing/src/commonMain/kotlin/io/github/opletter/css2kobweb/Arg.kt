@@ -86,7 +86,7 @@ sealed class Arg(private val value: String) {
         }
     }
 
-    class Property(val className: String, val value: String) : Arg("$className.$value")
+    class Property(val className: String?, val value: String) : Arg("${className?.let { "$it." }.orEmpty()}$value")
 
     class NamedArg(val name: String, val value: Arg) : Arg("$name = $value")
 
@@ -109,6 +109,8 @@ sealed class Arg(private val value: String) {
         internal companion object // for extensions
     }
 
+    class ExtensionCall(val property: Arg, val function: Function) : Arg("$property.$function")
+
     override fun toString(): String = value
     override fun hashCode(): Int = value.hashCode()
     override fun equals(other: Any?): Boolean = other is Arg && other.value == value
@@ -125,8 +127,8 @@ fun Arg.asCodeBlocks(
     return when (this) {
         is Arg.Literal -> listOf(CodeBlock(toString(), CodeElement.String))
         is Arg.FancyNumber, is Arg.RawNumber -> listOf(CodeBlock(toString(), CodeElement.Number))
-        is Arg.Property -> listOf(
-            CodeBlock("$className.", CodeElement.Plain),
+        is Arg.Property -> listOfNotNull(
+            className?.let { CodeBlock("$it.", CodeElement.Plain) },
             CodeBlock(value, CodeElement.Property),
         )
 
@@ -197,6 +199,11 @@ fun Arg.asCodeBlocks(
                 addAll(lambdaLines)
                 add(CodeBlock(if (sameLine) " }" else "\n$indents}", CodeElement.Plain))
             }
+        }
+
+        is Arg.ExtensionCall -> {
+            property.asCodeBlocks(indentLevel) + CodeBlock(".", CodeElement.Plain) +
+                    function.asCodeBlocks(indentLevel, functionType = CodeElement.ExtensionFun)
         }
     }
 }
