@@ -14,6 +14,7 @@ internal fun List<Pair<String, ParsedProperty>>.postProcessProperties(): List<Pa
         .combineTransitionModifiers()
         .combineBackgroundPosition() // must be before combineBackgroundModifiers
         .combineBackgroundModifiers()
+        .combineAnimationModifiers()
         .values.map {
             if (it.name == "width" && it.args.single() == Arg.UnitNum.of("100%")) {
                 ParsedProperty("fillMaxWidth")
@@ -101,6 +102,48 @@ private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String
     val newProperty = ParsedProperty("background", color + backgroundProperties)
 
     return (this - propertyKeys - "backgroundColor") + (newProperty.name to newProperty)
+}
+
+private fun Map<String, ParsedProperty>.combineAnimationModifiers(): Map<String, ParsedProperty> {
+    fun String.getArgName() = this.substringAfter("animation").replaceFirstChar { it.lowercase() }
+
+    val existingAnimation = this["animation"]
+    val existingAnimationArgs = existingAnimation?.args?.ifEmpty { null }
+
+    val propertyKeys = setOf(
+        "animationName",
+        "animationDuration",
+        "animationTimingFunction",
+        "animationDelay",
+        "animationIterationCount",
+        "animationDirection",
+        "animationFillMode",
+        "animationPlayState",
+    )
+    val argNames = propertyKeys.map { it.getArgName() }
+
+    val propertyValues = propertyKeys.mapNotNull { prop ->
+        this[prop]?.let { prop to it.args }
+    }.toMap()
+
+    // kobweb currently only supports specifying the whole animation as a single property, so we have to handle
+    // all cases where one of these properties is individually specified in css. If this changes,
+    // then this return condition can be expanded to match the one for [background]
+    if (propertyValues.isEmpty())
+        return this
+
+    val animationProperties = propertyValues.values.first().indices.map { index ->
+        val args = propertyValues.map { (prop, args) ->
+            Arg.NamedArg(prop.getArgName(), args[index])
+        }
+        val existingArgs = (existingAnimationArgs?.get(index) as Arg.Function?)?.args.orEmpty()
+        val combinedArgs = (existingArgs + args).sortedBy { argNames.indexOf(it.toString().substringBefore(" ")) }
+
+        Arg.Function("CSSAnimation", combinedArgs)
+    }
+    val newProperty = ParsedProperty("animation", animationProperties)
+
+    return (this - propertyKeys) + (newProperty.name to newProperty)
 }
 
 private fun Map<String, ParsedProperty>.combineTransitionModifiers(): Map<String, ParsedProperty> {

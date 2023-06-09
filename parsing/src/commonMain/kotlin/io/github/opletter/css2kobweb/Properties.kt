@@ -81,6 +81,21 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
         }
         return ParsedProperty(propertyName, args)
     }
+    if (propertyName == "animation") {
+        return ParsedProperty(propertyName, parseAnimation(value))
+    }
+    if (propertyName == "animationName") {
+        return ParsedProperty(propertyName, Arg.Literal("\"$value\""))
+    }
+    if (propertyName == "animationIterationCount") {
+        val num = value.toIntOrNull() ?: value.toDoubleOrNull()
+        val arg = if (num != null) {
+            Arg.Function("AnimationIterationCount.of", Arg.RawNumber(num))
+        } else {
+            Arg.Property("AnimationIterationCount", kebabToPascalCase(value))
+        }
+        return ParsedProperty(propertyName, arg)
+    }
 
     return value.splitNotBetween('(', ')', setOf(' ', ',', '/')).map { prop ->
         if (prop in GlobalValues) {
@@ -131,7 +146,7 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
         val className = classNamesFromProperty(propertyName)
 
         if (prop.endsWith(")")) {
-            val functionPropertyName = if (propertyName == "transitionTimingFunction" && prop.startsWith("steps(")) {
+            val functionPropertyName = if (propertyName.endsWith("TimingFunction") && prop.startsWith("steps(")) {
                 "StepPosition"
             } else propertyName
 
@@ -246,4 +261,77 @@ private fun parseBackground(value: String): List<Arg> {
 
     val color = backgrounds.first().splitNotInParens(' ').firstNotNullOfOrNull { Arg.asColorOrNull(it) }
     return listOfNotNull(color) + backgroundObjects
+}
+
+private fun parseAnimation(value: String): List<Arg> {
+    val animations = value.splitNotInParens(',')
+    val animationObjects = animations.map { animation ->
+        val timingRegex =
+            """((ease-in-out|ease-in|ease-out|ease|linear|step-start|step-end)|cubic-bezier\([^)]*\)|steps\([^)]*\))""".toRegex()
+        val directionRegex = """(normal|reverse|alternate|alternate-reverse)\b""".toRegex()
+        val fillModeRegex = """(none|forwards|backwards|both)\b""".toRegex()
+        val playStateRegex = """(running|paused)\b""".toRegex()
+
+        val parts = animation.splitNotInParens(' ')
+
+        val units = parts.mapNotNull { Arg.UnitNum.ofOrNull(it) }
+
+        val animationArgs = buildList {
+            if (units.isNotEmpty()) {
+                add(Arg.NamedArg("duration", units.first()))
+            }
+
+            val timing = timingRegex.find(animation)?.value
+            if (timing != null) {
+                val repeatArg = parseValue("animationTimingFunction", timing).args.single()
+                add(Arg.NamedArg("timingFunction", repeatArg))
+            }
+
+            if (units.size > 1) {
+                add(Arg.NamedArg("delay", units[1]))
+            }
+
+            val iterationCount = parts.firstNotNullOfOrNull { it.toIntOrNull() ?: it.toDoubleOrNull() }
+                ?: "infinite".takeIf { it in parts }
+
+            if (iterationCount != null) {
+                val iterationCountArg = parseValue("animationIterationCount", iterationCount.toString()).args.single()
+                add(Arg.NamedArg("iterationCount", iterationCountArg))
+            }
+
+            val direction = directionRegex.find(animation)?.value
+            if (direction != null) {
+                val directionArg = parseValue("animationDirection", direction).args.single()
+                add(Arg.NamedArg("direction", directionArg))
+            }
+
+            val fillMode = fillModeRegex.find(animation)?.value
+            if (fillMode != null) {
+                val fillModeArg = parseValue("animationFillMode", fillMode).args.single()
+                add(Arg.NamedArg("fillMode", fillModeArg))
+            }
+
+            val playState = playStateRegex.find(animation)?.value
+            if (playState != null) {
+                val playStateArg = parseValue("animationPlayState", playState).args.single()
+                add(Arg.NamedArg("playState", playStateArg))
+            }
+
+            val otherProps = parts.filter { Arg.UnitNum.ofOrNull(it) == null } -
+                    setOfNotNull(timing, iterationCount.toString(), direction, fillMode, playState)
+
+            println("otherProps: $otherProps")
+            println("timing: $timing")
+            println("x: ${setOfNotNull(timing, iterationCount.toString(), direction, fillMode, playState)}")
+            println("y: $parts")
+
+            val name = otherProps.lastOrNull { it.isNotBlank() } // search from end per css best practice
+            if (name != null) {
+                add(0, Arg.NamedArg("name", parseValue("animationName", name).args.single()))
+            }
+        }
+        Arg.Function("CSSAnimation", animationArgs)
+    }.filter { it.args.isNotEmpty() }
+
+    return animationObjects
 }
