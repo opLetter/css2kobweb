@@ -34,7 +34,6 @@ internal fun getProperties(str: String): List<ParsedProperty> {
                 value = value
                     .replace("!important", "")
                     .lines()
-                    .filterNot { it.startsWith("@import") || it.startsWith("@charset") || it.startsWith("@namespace") }
                     .joinToString(" ") { it.trim() }
                     .replace("  ", " "),
             )

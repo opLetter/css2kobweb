@@ -4,6 +4,9 @@ import io.github.opletter.css2kobweb.constants.cssRules
 
 fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssParseResult {
     val cleanedCss = inlineCssVariables(rawCSS)
+        .lines()
+        .filterNot { it.startsWith("@import") || it.startsWith("@charset") || it.startsWith("@namespace") }
+        .joinToString("\n")
         .replace("/\\*[\\s\\S]*?\\*/".toRegex(), "") // remove comments
         .replace('\'', '"') // to simplify parsing
 
