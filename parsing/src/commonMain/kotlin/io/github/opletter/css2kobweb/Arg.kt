@@ -31,6 +31,8 @@ sealed class Arg(private val value: String) {
             "$arg1Str $operation $arg2Str"
         })
 
+        object Auto : UnitNum("auto")
+
         companion object {
             private fun String.prependCalcToParens(): String = fold("") { result, c ->
                 result + if (c == '(' && result.takeLast(4) != "calc") "calc$c" else c
@@ -77,8 +79,10 @@ sealed class Arg(private val value: String) {
             fun ofOrNull(str: String, zeroUnit: String = "px"): UnitNum? =
                 parseCalcNum(str.prependCalcToParens(), zeroUnit) as? UnitNum
 
-            fun of(str: String, zeroUnit: String = "px"): UnitNum =
-                ofOrNull(str, zeroUnit) ?: throw IllegalArgumentException("Not a unit number: $str")
+            fun of(str: String, zeroUnit: String = "px"): UnitNum {
+                return (if (str == "auto") Auto else ofOrNull(str, zeroUnit))
+                    ?: throw IllegalArgumentException("Not a unit number: $str")
+            }
         }
     }
 
@@ -156,6 +160,8 @@ fun Arg.asCodeBlocks(
                 }
             } else expression
         }
+
+        is Arg.UnitNum.Auto -> listOf(CodeBlock("auto", CodeElement.Property))
 
         is Arg.NamedArg -> listOf(CodeBlock("$name = ", CodeElement.NamedArg)) + value.asCodeBlocks(indentLevel)
 
