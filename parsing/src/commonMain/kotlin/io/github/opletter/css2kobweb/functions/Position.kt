@@ -37,8 +37,13 @@ internal fun Arg.Function.Companion.positionOrNull(value: String): Arg? {
                 }
 
                 1 -> {
+                    val centerIndex = position.indexOf("center")
                     val xEdge = xEdges.singleOrNull { it in position }
-                    if (xEdge != null) {
+                    if (centerIndex != -1) {
+                        val x = if (centerIndex == 0) edge("center-x") else units.single()
+                        val y = if (centerIndex == 1) edge("center-y") else units.single()
+                        Arg.Function("CSSPosition", listOf(x, y))
+                    } else if (xEdge != null) {
                         val yFun = Arg.Function("Edge.Top", units)
                         Arg.Function("CSSPosition", listOf(edge(xEdge), yFun))
                     } else {
