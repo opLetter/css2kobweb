@@ -144,10 +144,14 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
             val functionName = kebabToCamelCase(prop.substringBefore("("))
             val prefix = if (functionName in simpleGlobalFunctions) "" else "$className."
 
-            return@map Arg.Function(
-                "$prefix$functionName",
-                parseValue(functionPropertyName, parenContents(prop)).args
-            )
+            val adjustedArgs = parenContents(prop).let { args ->
+                // math function can contain expressions, so wrap them in calc() for parsing purposes
+                if (functionName in mathFunctions)
+                    args.splitNotInParens(',').joinToString { "calc($it)" }
+                else args
+            }
+
+            return@map Arg.Function("$prefix$functionName", parseValue(functionPropertyName, adjustedArgs).args)
         }
 
         Arg.Property(className, kebabToPascalCase(prop))
