@@ -20,6 +20,8 @@ gradleEnterprise {
     }
 }
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 rootProject.name = "css2kobweb"
 
 include(":site")
