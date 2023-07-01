@@ -9,6 +9,7 @@ import com.varabyte.kobweb.compose.ui.modifiers.*
 import com.varabyte.kobweb.silk.components.style.toModifier
 import io.github.opletter.css2kobweb.components.sections.Footer
 import io.github.opletter.css2kobweb.components.styles.BackgroundGradientStyle
+import org.jetbrains.compose.web.css.fr
 import org.jetbrains.compose.web.css.percent
 import org.jetbrains.compose.web.dom.H1
 import org.jetbrains.compose.web.dom.Text
@@ -22,7 +23,7 @@ fun PageLayout(title: String, content: @Composable () -> Unit) {
     Box(
         BackgroundGradientStyle.toModifier()
             .fillMaxSize()
-            .gridTemplateRows("1fr auto"),
+            .gridTemplateRows { size(1.fr); size(auto) },
         contentAlignment = Alignment.TopCenter
     ) {
         Column(

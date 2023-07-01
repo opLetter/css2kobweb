@@ -85,7 +85,7 @@ fun HomePage() {
                 .fillMaxWidth()
                 .flex(1)
                 .gap(1.cssRem)
-                .gridAutoRows(1.fr.toString())
+                .gridAutoRows { size(1.fr) }
         ) {
             Column(Modifier.fillMaxHeight()) {
                 Label(attrs = Modifier.display(DisplayStyle.Contents).toAttrs()) {
@@ -121,11 +121,9 @@ fun HomePage() {
                         TextAreaLabelBarStyle.toModifier().columnGap(1.cssRem),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        H2(
-                            Modifier
-                                .fillMaxWidth()
-                                .toAttrs()
-                        ) { Text("Kobweb Code") }
+                        H2(Modifier.fillMaxWidth().toAttrs()) {
+                            Text("Kobweb Code")
+                        }
 
                         CopyTextButton(outputCode.joinToString(""))
                     }
