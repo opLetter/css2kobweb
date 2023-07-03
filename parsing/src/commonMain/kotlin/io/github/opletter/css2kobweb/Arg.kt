@@ -22,7 +22,7 @@ sealed class Arg(private val value: String) {
     class RawNumber(value: Number) : CalcNumber(value.toString())
 
     sealed class UnitNum(value: String) : CalcNumber(value) {
-        class Normal(value: Number, val type: String) :
+        class Normal(val value: Number, val type: String) :
             UnitNum("${if (value.toDouble() < 0.0) "($value)" else "$value"}.$type")
 
         class Calc(val arg1: CalcNumber, val arg2: CalcNumber, val operation: Char) : UnitNum(run {
@@ -39,33 +39,32 @@ sealed class Arg(private val value: String) {
             }
 
             private fun parseCalcNum(str: String, zeroUnit: String): CalcNumber? {
+                if (str == "0") return Normal(0, zeroUnit)
+
                 if (str.startsWith("calc(")) {
                     // whitespace isn't required for / & *, so we add it for parsing (extra space gets trimmed anyway)
                     val expr = parenContents(str)
                         .replace("/", " / ")
                         .replace("*", " * ")
-
                     val parts = expr.splitNotInParens(' ')
 
-                    return when {
-                        parts.size == 1 -> parseCalcNum(parts.single(), zeroUnit)
-
-                        parts.size > 3 -> {
-                            val newCalc = parts.take(3).joinToString(" ", prefix = "calc(", postfix = ") ") +
-                                    parts.drop(3).joinToString(" ")
-                            parseCalcNum("calc($newCalc)", zeroUnit)
-                        }
-
-                        parts.size == 3 -> {
+                    return when (parts.size) {
+                        0, 2 -> null
+                        1 -> parseCalcNum(parts.single(), zeroUnit)
+                        3 -> {
                             val (arg1, operation, arg2) = parts
                             Calc(parseCalcNum(arg1, zeroUnit)!!, parseCalcNum(arg2, zeroUnit)!!, operation.single())
                         }
 
-                        else -> null
+                        else -> {
+                            // For chained operations (e.g. "1px + 2px + 3px..."), we recursively add "calc(..)"
+                            // wrappings so that the rest of the parsing logic can handle it.
+                            val newCalc = parts.take(3).joinToString(" ", prefix = "calc(", postfix = ") ") +
+                                    parts.drop(3).joinToString(" ")
+                            parseCalcNum("calc($newCalc)", zeroUnit)
+                        }
                     }
                 }
-
-                if (str == "0") return Normal(0, zeroUnit)
 
                 val potentialUnit = str.dropWhile { it.isDigit() || it == '.' || it == '-' || it == '+' }.lowercase()
                 val unit = units[potentialUnit]
@@ -80,8 +79,8 @@ sealed class Arg(private val value: String) {
                 parseCalcNum(str.prependCalcToParens(), zeroUnit) as? UnitNum
 
             fun of(str: String, zeroUnit: String = "px"): UnitNum {
-                return (if (str == "auto") Auto else ofOrNull(str, zeroUnit))
-                    ?: throw IllegalArgumentException("Not a unit number: $str")
+                val unitNum = if (str == "auto") Auto else ofOrNull(str, zeroUnit)
+                return requireNotNull(unitNum) { "Not a unit number: $str" }
             }
         }
     }
@@ -122,7 +121,7 @@ sealed class Arg(private val value: String) {
 fun Arg.asCodeBlocks(
     indentLevel: Int,
     functionType: CodeElement = CodeElement.Plain,
-    surroundWithParens: Boolean = false,
+    nestedCalc: Boolean = false,
 ): List<CodeBlock> {
     return when (this) {
         is Arg.Literal -> listOf(CodeBlock(toString(), CodeElement.String))
@@ -132,35 +131,25 @@ fun Arg.asCodeBlocks(
             CodeBlock(value, CodeElement.Property),
         )
 
-        is Arg.UnitNum.Normal -> {
-            val num = toString().substringBeforeLast(".")
-            val numCode = if (num.first() == '(') {
-                listOf(
-                    CodeBlock("(-", CodeElement.Plain),
-                    CodeBlock(num.drop(2).dropLast(1), CodeElement.Number),
-                    CodeBlock(")", CodeElement.Plain),
-                )
-            } else listOf(CodeBlock(num, CodeElement.Number))
-
-            numCode + listOf(
-                CodeBlock(".", CodeElement.Plain),
-                CodeBlock(type, CodeElement.Property),
-            )
+        is Arg.UnitNum.Normal -> buildList {
+            add(CodeBlock(value.toString(), CodeElement.Number))
+            if (value.toDouble() < 0.0) {
+                add(0, CodeBlock("(", CodeElement.Plain))
+                add(CodeBlock(")", CodeElement.Plain))
+            }
+            add(CodeBlock(".", CodeElement.Plain))
+            add(CodeBlock(type, CodeElement.Property))
         }
 
-        is Arg.UnitNum.Calc -> {
-            val expression = buildList {
-                addAll(arg1.asCodeBlocks(indentLevel, surroundWithParens = true))
-                add(CodeBlock(" $operation ", CodeElement.Plain))
-                addAll(arg2.asCodeBlocks(indentLevel, surroundWithParens = true))
+        is Arg.UnitNum.Calc -> buildList {
+            addAll(arg1.asCodeBlocks(indentLevel, nestedCalc = true))
+            add(CodeBlock(" $operation ", CodeElement.Plain))
+            addAll(arg2.asCodeBlocks(indentLevel, nestedCalc = true))
+
+            if (nestedCalc) {
+                add(0, CodeBlock("(", CodeElement.Plain))
+                add(CodeBlock(")", CodeElement.Plain))
             }
-            if (surroundWithParens) {
-                buildList {
-                    add(CodeBlock("(", CodeElement.Plain))
-                    addAll(expression)
-                    add(CodeBlock(")", CodeElement.Plain))
-                }
-            } else expression
         }
 
         is Arg.UnitNum.Auto -> listOf(CodeBlock(toString(), CodeElement.Property))
@@ -172,31 +161,27 @@ fun Arg.asCodeBlocks(
             add(CodeBlock(name, functionType))
             if (args.isNotEmpty() || lambdaStatements.isEmpty()) {
                 val longArgs = args.toString().length > 100 // number chosen arbitrarily
-
                 val separator = if (longArgs) ",\n\t$indents" else ", "
                 val start = if (longArgs) "(\n\t$indents" else "("
                 val end = if (longArgs) "\n$indents)" else ")"
 
                 add(CodeBlock(start, CodeElement.Plain))
-                addAll(args.flatMapIndexed { index, arg ->
-                    val argBlocks = arg.asCodeBlocks(indentLevel + if (longArgs) 1 else 0)
-                    if (index < args.size - 1) {
-                        argBlocks + CodeBlock(separator, CodeElement.Plain)
-                    } else argBlocks
-                })
+                args.forEachIndexed { index, arg ->
+                    addAll(arg.asCodeBlocks(indentLevel + if (longArgs) 1 else 0))
+                    if (index < args.size - 1)
+                        add(CodeBlock(separator, CodeElement.Plain))
+                }
                 add(CodeBlock(end, CodeElement.Plain))
             }
             if (lambdaStatements.isNotEmpty()) {
                 add(CodeBlock(" {", CodeElement.Plain))
-
                 // todo: consider making this a setting
                 val sameLine = lambdaStatements.size == 1 && lambdaStatements.single().toString().length < 50
-                val lambdaPrefix = if (sameLine) " " else "\n\t$indents"
 
-                val lambdaLines = lambdaStatements.flatMap {
-                    listOf(CodeBlock(lambdaPrefix, CodeElement.Plain)) + it.asCodeBlocks(indentLevel + 1)
+                lambdaStatements.forEach {
+                    add(CodeBlock(if (sameLine) " " else "\n\t$indents", CodeElement.Plain))
+                    addAll(it.asCodeBlocks(indentLevel + 1))
                 }
-                addAll(lambdaLines)
                 add(CodeBlock(if (sameLine) " }" else "\n$indents}", CodeElement.Plain))
             }
         }
