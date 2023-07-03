@@ -48,7 +48,7 @@ internal fun getProperties(str: String): List<ParsedProperty> {
  * Note that this only gets the first level of selectors, so nested selectors will be kept within their parent.
  */
 private fun String.splitIntoCssBlocks(): List<Pair<String, String>> {
-    return splitNotBetween('{', '}', setOf('{'))
+    return splitNotBetween(setOf('{' to '}'), setOf('{'))
         .filter { it.isNotBlank() }
         .fold(listOf<Pair<String, String>>()) { acc, str ->
             val prev = acc.lastOrNull() ?: ("" to "")

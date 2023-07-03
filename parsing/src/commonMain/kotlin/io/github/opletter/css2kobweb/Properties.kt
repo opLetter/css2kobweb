@@ -96,8 +96,14 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
         }
         return ParsedProperty(propertyName, arg)
     }
+    if (
+        value !in GlobalValues && value != "none"
+        && propertyName in setOf("gridAutoRows", "gridAutoColumns", "gridTemplateRows", "gridTemplateColumns")
+    ) {
+        return ParsedProperty(propertyName, lambdaStatements = parseGridRowCol(value))
+    }
 
-    return value.splitNotBetween('(', ')', setOf(' ', ',', '/')).map { prop ->
+    return value.splitNotBetween(setOf('(' to ')'), setOf(' ', ',', '/')).map { prop ->
         if (prop in GlobalValues) {
             return@map Arg.Property(classNamesFromProperty(propertyName), kebabToPascalCase(prop))
         }
@@ -178,6 +184,8 @@ private fun classNamesFromProperty(propertyName: String): String {
         "display" -> "DisplayStyle"
         "overflowY", "overflowX" -> "Overflow"
         "float" -> "CSSFloat"
+        "gridTemplateRows", "gridTemplateColumns" -> "GridTemplate"
+        "gridAutoRows", "gridAutoColumns" -> "GridAuto"
         "border", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight",
         "outline", "outlineStyle",
         -> "LineStyle"
@@ -333,4 +341,33 @@ private fun parseAnimation(value: String): List<Arg> {
     }.filter { it.args.isNotEmpty() }
 
     return animationObjects
+}
+
+private fun parseGridRowCol(value: String): List<Arg.Function> {
+    return value.splitNotBetween(setOf('(' to ')', '[' to ']'), setOf(' ')).map { subValue ->
+        if (subValue.startsWith("[")) {
+            Arg.Function(
+                "lineNames",
+                subValue.drop(1).dropLast(1).splitNotInParens(' ').map { Arg.Literal.withQuotesIfNecessary(it) }
+            )
+        } else if (subValue.startsWith("minmax") || subValue.startsWith("fit-content")) {
+            Arg.Function(
+                kebabToCamelCase(subValue.substringBefore("(")),
+                parenContents(subValue).splitNotInParens(',').map {
+                    Arg.UnitNum.ofOrNull(it.trim()) ?: Arg.Property(null, kebabToCamelCase(it.trim()))
+                }
+            )
+        } else if (subValue.startsWith("repeat")) {
+            val repeatArgs = parenContents(subValue).splitNotInParens(',').map { it.trim() }
+            val repeatCount = repeatArgs[0].toIntOrNull()?.let { Arg.RawNumber(it) }
+                ?: Arg.Property(null, kebabToCamelCase(repeatArgs[0]))
+            Arg.Function(
+                "repeat",
+                args = listOf(repeatCount),
+                lambdaStatements = parseGridRowCol(repeatArgs[1]),
+            )
+        } else {
+            Arg.Function("size", Arg.UnitNum.of(subValue))
+        }
+    }
 }
