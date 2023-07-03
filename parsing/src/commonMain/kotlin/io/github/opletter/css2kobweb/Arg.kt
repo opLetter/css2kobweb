@@ -31,7 +31,7 @@ sealed class Arg(private val value: String) {
             "$arg1Str $operation $arg2Str"
         })
 
-        object Auto : UnitNum("auto")
+        object Auto : UnitNum("numericAuto")
 
         companion object {
             private fun String.prependCalcToParens(): String = fold("") { result, c ->
@@ -163,7 +163,7 @@ fun Arg.asCodeBlocks(
             } else expression
         }
 
-        is Arg.UnitNum.Auto -> listOf(CodeBlock("auto", CodeElement.Property))
+        is Arg.UnitNum.Auto -> listOf(CodeBlock(toString(), CodeElement.Property))
 
         is Arg.NamedArg -> listOf(CodeBlock("$name = ", CodeElement.NamedArg)) + value.asCodeBlocks(indentLevel)
 
