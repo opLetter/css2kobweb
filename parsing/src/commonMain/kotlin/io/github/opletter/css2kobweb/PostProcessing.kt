@@ -40,7 +40,7 @@ private fun Map<String, ParsedProperty>.combineBackgroundPosition(): Map<String,
     val keys = setOf("backgroundPositionX", "backgroundPositionY")
     val positions = keys.mapNotNull {
         val value = this[it] ?: return@mapNotNull null
-        // one arg -> Arg.Literal -> see parseValue()
+        // one arg -> Arg.Literal -> see parseCssProperty()
         value.args.single().toString().splitNotInParens(',')
     }.ifEmpty { return this }
 

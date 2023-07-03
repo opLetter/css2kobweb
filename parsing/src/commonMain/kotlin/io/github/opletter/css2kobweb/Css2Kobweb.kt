@@ -13,7 +13,7 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
     val cssBySelector = parseCss(cleanedCss).ifEmpty {
         return if (":" in cleanedCss)
             ParsedStyleBlock(getProperties(cleanedCss))
-        else parseValue("", cleanedCss)
+        else parseCssProperty("", cleanedCss)
     }
 
     val parsedModifiers = cssBySelector.filterIsInstance<ParsedStyleBlock>()

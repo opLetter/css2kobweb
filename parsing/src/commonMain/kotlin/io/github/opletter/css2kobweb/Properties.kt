@@ -6,13 +6,13 @@ import kotlin.math.min
 
 private val GlobalValues = setOf("initial", "inherit", "unset", "revert")
 
-internal fun parseValue(propertyName: String, value: String): ParsedProperty {
+internal fun parseCssProperty(propertyName: String, value: String): ParsedProperty {
     if (propertyName == "transition") {
         val transitions = value.splitNotInParens(',').map { transition ->
             val params = transition.splitNotInParens(' ')
                 .let { if (Arg.UnitNum.ofOrNull(it.first()) != null) listOf("all") + it else it }
             val thirdArg = params.getOrNull(2)?.let {
-                Arg.UnitNum.ofOrNull(it) ?: parseValue("transitionTimingFunction", it).args.singleOrNull()
+                Arg.UnitNum.ofOrNull(it) ?: parseCssProperty("transitionTimingFunction", it).args.singleOrNull()
             }
             val fourthArg = params.getOrNull(3)?.let { Arg.UnitNum.of(it) }
 
@@ -53,7 +53,7 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     }
     if (propertyName == "backgroundPosition" && value !in GlobalValues) {
         val args = value.splitNotInParens(',').map {
-            if (it in GlobalValues) parseValue(propertyName, it).args.single()
+            if (it in GlobalValues) parseCssProperty(propertyName, it).args.single()
             else Arg.Function("BackgroundPosition.of", Arg.Function.position(it))
         }
         return ParsedProperty(propertyName, args)
@@ -106,8 +106,8 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
         val subValues = value.splitNotInParens(' ')
         return ParsedProperty(
             propertyName,
-            parseValue("flexDirection", subValues[0]).args +
-                    parseValue("flexWrap", subValues[1]).args
+            parseCssProperty("flexDirection", subValues[0]).args +
+                    parseCssProperty("flexWrap", subValues[1]).args
         )
     }
 
@@ -180,7 +180,7 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
                 else args
             }
 
-            return@map Arg.Function("$prefix$functionName", parseValue(functionPropertyName, adjustedArgs).args)
+            return@map Arg.Function("$prefix$functionName", parseCssProperty(functionPropertyName, adjustedArgs).args)
         }
 
         Arg.Property(className, kebabToPascalCase(prop))
@@ -218,7 +218,7 @@ private fun parseBackground(value: String): List<Arg> {
                         || it.startsWith("radial-gradient(") || it.startsWith("conic-gradient(")
             }
             if (image != null) {
-                val imageArg = parseValue("backgroundImage", image).args.single().let {
+                val imageArg = parseCssProperty("backgroundImage", image).args.single().let {
                     if (it is Arg.Function) {
                         if (it.name == "url") Arg.Function("BackgroundImage.of", it)
                         else Arg.ExtensionCall(it, Arg.Function("toImage"))
@@ -229,21 +229,21 @@ private fun parseBackground(value: String): List<Arg> {
 
             val repeat = repeatRegex.find(background)?.value
             if (repeat != null) {
-                val repeatArg = parseValue("backgroundRepeat", repeat).args.single()
+                val repeatArg = parseCssProperty("backgroundRepeat", repeat).args.single()
                 add(Arg.NamedArg("repeat", repeatArg))
             }
 
             val attachment = attachmentRegex.find(background)?.value
             if (attachment != null) {
-                val attachmentArg = parseValue("backgroundAttachment", attachment).args.single()
+                val attachmentArg = parseCssProperty("backgroundAttachment", attachment).args.single()
                 add(Arg.NamedArg("attachment", attachmentArg))
             }
 
             val boxMatches = boxRegex.findAll(background).toList()
             if (boxMatches.isNotEmpty()) {
                 val (origin, clip) = if (boxMatches.size == 2) boxMatches else List(2) { boxMatches.single() }
-                val originArg = parseValue("backgroundOrigin", origin.value).args.single()
-                val clipArg = parseValue("backgroundClip", clip.value).args.single()
+                val originArg = parseCssProperty("backgroundOrigin", origin.value).args.single()
+                val clipArg = parseCssProperty("backgroundClip", clip.value).args.single()
                 add(Arg.NamedArg("origin", originArg))
                 add(Arg.NamedArg("clip", clipArg))
             }
@@ -260,7 +260,7 @@ private fun parseBackground(value: String): List<Arg> {
                     .mapNotNull { Arg.UnitNum.ofOrNull(it) }
                     .takeIf { it.isNotEmpty() }
                     ?.let { Arg.Function("BackgroundSize.of", it) }
-                    ?: parseValue("backgroundSize", otherProps[slashIndex + 1]).args.single()
+                    ?: parseCssProperty("backgroundSize", otherProps[slashIndex + 1]).args.single()
 
                 add(Arg.NamedArg("position", Arg.Function("BackgroundPosition.of", position)))
                 add(Arg.NamedArg("size", size))
@@ -303,7 +303,7 @@ private fun parseAnimation(value: String): List<Arg> {
 
             val timing = timingRegex.find(animation)?.value
             if (timing != null) {
-                val repeatArg = parseValue("animationTimingFunction", timing).args.single()
+                val repeatArg = parseCssProperty("animationTimingFunction", timing).args.single()
                 add(Arg.NamedArg("timingFunction", repeatArg))
             }
 
@@ -315,25 +315,26 @@ private fun parseAnimation(value: String): List<Arg> {
                 ?: "infinite".takeIf { it in parts }
 
             if (iterationCount != null) {
-                val iterationCountArg = parseValue("animationIterationCount", iterationCount.toString()).args.single()
+                val iterationCountArg =
+                    parseCssProperty("animationIterationCount", iterationCount.toString()).args.single()
                 add(Arg.NamedArg("iterationCount", iterationCountArg))
             }
 
             val direction = directionRegex.find(animation)?.value
             if (direction != null) {
-                val directionArg = parseValue("animationDirection", direction).args.single()
+                val directionArg = parseCssProperty("animationDirection", direction).args.single()
                 add(Arg.NamedArg("direction", directionArg))
             }
 
             val fillMode = fillModeRegex.find(animation)?.value
             if (fillMode != null) {
-                val fillModeArg = parseValue("animationFillMode", fillMode).args.single()
+                val fillModeArg = parseCssProperty("animationFillMode", fillMode).args.single()
                 add(Arg.NamedArg("fillMode", fillModeArg))
             }
 
             val playState = playStateRegex.find(animation)?.value
             if (playState != null) {
-                val playStateArg = parseValue("animationPlayState", playState).args.single()
+                val playStateArg = parseCssProperty("animationPlayState", playState).args.single()
                 add(Arg.NamedArg("playState", playStateArg))
             }
 
@@ -342,7 +343,7 @@ private fun parseAnimation(value: String): List<Arg> {
 
             val name = otherProps.lastOrNull { it.isNotBlank() } // search from end per css best practice
             if (name != null) {
-                add(0, Arg.NamedArg("name", parseValue("animationName", name).args.single()))
+                add(0, Arg.NamedArg("name", parseCssProperty("animationName", name).args.single()))
             }
         }
         Arg.Function("CSSAnimation", animationArgs)

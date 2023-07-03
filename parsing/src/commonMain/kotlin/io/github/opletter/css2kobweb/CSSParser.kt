@@ -28,7 +28,7 @@ internal fun getProperties(str: String): List<ParsedProperty> {
             val propertyArgs = listOf(name, value).map { Arg.Literal.withQuotesIfNecessary(it) }
             Arg.Function("styleModifier", lambdaStatements = listOf(Arg.Function("property", propertyArgs)))
         } else {
-            parseValue(
+            parseCssProperty(
                 propertyName = kebabToCamelCase(name),
                 value = value
                     .replace("!important", "")
