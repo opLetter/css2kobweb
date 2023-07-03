@@ -102,6 +102,14 @@ internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     ) {
         return ParsedProperty(propertyName, lambdaStatements = parseGridRowCol(value))
     }
+    if (value !in GlobalValues && propertyName == "flexFlow") {
+        val subValues = value.splitNotInParens(' ')
+        return ParsedProperty(
+            propertyName,
+            parseValue("flexDirection", subValues[0]).args +
+                    parseValue("flexWrap", subValues[1]).args
+        )
+    }
 
     return value.splitNotBetween(setOf('(' to ')'), setOf(' ', ',', '/')).map { prop ->
         if (prop in GlobalValues) {
