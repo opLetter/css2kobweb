@@ -361,13 +361,12 @@ private fun parseGridRowCol(value: String): List<Arg.Function> {
             val repeatArgs = parenContents(subValue).splitNotInParens(',').map { it.trim() }
             val repeatCount = repeatArgs[0].toIntOrNull()?.let { Arg.RawNumber(it) }
                 ?: Arg.Property(null, kebabToCamelCase(repeatArgs[0]))
-            Arg.Function(
-                "repeat",
-                args = listOf(repeatCount),
-                lambdaStatements = parseGridRowCol(repeatArgs[1]),
-            )
+            Arg.Function("repeat", listOf(repeatCount), parseGridRowCol(repeatArgs[1]))
         } else {
-            Arg.Function("size", Arg.UnitNum.of(subValue))
+            Arg.Function(
+                "size",
+                Arg.UnitNum.ofOrNull(subValue) ?: Arg.Property(null, kebabToCamelCase(subValue))
+            )
         }
     }
 }
