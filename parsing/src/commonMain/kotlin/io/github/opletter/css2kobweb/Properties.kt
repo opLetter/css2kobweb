@@ -104,11 +104,18 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
     }
     if (value !in GlobalValues && propertyName == "flexFlow") {
         val subValues = value.splitNotInParens(' ')
-        return ParsedProperty(
-            propertyName,
-            parseCssProperty("flexDirection", subValues[0]).args +
-                    parseCssProperty("flexWrap", subValues[1]).args
-        )
+        val indexOfWrap = subValues.indexOfFirst { "wrap" in it }
+
+        return if (subValues.size == 2) {
+            ParsedProperty(
+                propertyName,
+                parseCssProperty("flexDirection", subValues[1 - indexOfWrap]).args +
+                        parseCssProperty("flexWrap", subValues[indexOfWrap]).args
+            )
+        } else {
+            val property = if (indexOfWrap != -1) "flexWrap" else "flexDirection"
+            ParsedProperty(property, parseCssProperty(property, value).args)
+        }
     }
 
     return value.splitNotBetween(setOf('(' to ')'), setOf(' ', ',', '/')).map { prop ->
