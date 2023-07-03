@@ -1,18 +1,14 @@
 package io.github.opletter.css2kobweb
 
 internal fun kebabToPascalCase(str: String): String {
-    return str.split('-').joinToString("") { prop ->
-        prop.replaceFirstChar { it.titlecase() }
+    return str.split('-').joinToString("") { part ->
+        part.replaceFirstChar { it.titlecase() }
     }
 }
 
-internal fun kebabToCamelCase(str: String): String {
-    return kebabToPascalCase(str).replaceFirstChar { it.lowercase() }
-}
+internal fun kebabToCamelCase(str: String): String = kebabToPascalCase(str).replaceFirstChar { it.lowercase() }
 
-internal fun parenContents(str: String): String {
-    return str.substringAfter('(').substringBeforeLast(')').trim()
-}
+internal fun parenContents(str: String): String = str.substringAfter('(').substringBeforeLast(')').trim()
 
 internal data class ParseState(
     val quotesCount: Int = 0,
@@ -51,11 +47,10 @@ internal tailrec fun String.splitNotBetween(
 
         '"' -> state.copy(buffer = state.buffer + ch, quotesCount = state.quotesCount + 1)
         in splitOn -> {
-            val isInGroup = state.groupCounts.values.any { it > 0 }
-            if (isInGroup || state.quotesCount % 2 == 1) {
+            if (state.groupCounts.values.any { it > 0 } || state.quotesCount % 2 == 1) {
                 state.copy(buffer = state.buffer + ch)
             } else {
-                state.copy(buffer = "", result = state.result + state.buffer.trim())
+                state.copy(buffer = "", result = state.result + state.buffer)
             }
         }
 

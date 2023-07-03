@@ -19,9 +19,8 @@ internal fun parseCss(css: String): List<CssParseResult> {
 }
 
 internal fun getProperties(str: String): List<ParsedProperty> {
-    val props = str.splitNotInParens(';').map { it.trim() }.filter { it.isNotEmpty() }
-    return props.mapNotNull { prop ->
-        val (name, value) = prop.split(":", limit = 2).map { it.trim() } + "" // use empty if not present
+    return str.splitNotInParens(';').mapNotNull { prop ->
+        val (name, value) = prop.split(':', limit = 2).map { it.trim() } + "" // use empty if not present
 
         if (name.startsWith("--")) return@mapNotNull null // ignore css variables
 

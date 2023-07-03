@@ -9,7 +9,7 @@ private val GlobalValues = setOf("initial", "inherit", "unset", "revert")
 internal fun parseValue(propertyName: String, value: String): ParsedProperty {
     if (propertyName == "transition") {
         val transitions = value.splitNotInParens(',').map { transition ->
-            val params = transition.splitNotInParens(' ').filter { it.isNotBlank() }
+            val params = transition.splitNotInParens(' ')
                 .let { if (Arg.UnitNum.ofOrNull(it.first()) != null) listOf("all") + it else it }
             val thirdArg = params.getOrNull(2)?.let {
                 Arg.UnitNum.ofOrNull(it) ?: parseValue("transitionTimingFunction", it).args.singleOrNull()
@@ -358,7 +358,7 @@ private fun parseGridRowCol(value: String): List<Arg.Function> {
                 }
             )
         } else if (subValue.startsWith("repeat")) {
-            val repeatArgs = parenContents(subValue).splitNotInParens(',').map { it.trim() }
+            val repeatArgs = parenContents(subValue).splitNotInParens(',')
             val repeatCount = repeatArgs[0].toIntOrNull()?.let { Arg.RawNumber(it) }
                 ?: Arg.Property(null, kebabToCamelCase(repeatArgs[0]))
             Arg.Function("repeat", listOf(repeatCount), parseGridRowCol(repeatArgs[1]))
