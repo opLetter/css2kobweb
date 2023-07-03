@@ -11,9 +11,15 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
         .replace('\'', '"') // to simplify parsing
 
     val cssBySelector = parseCss(cleanedCss).ifEmpty {
-        return if (":" in cleanedCss)
+        return if (":" in cleanedCss) {
             ParsedStyleBlock(getProperties(cleanedCss))
-        else parseCssProperty("", cleanedCss)
+        } else {
+            val parsedProperty = parseCssProperty("", cleanedCss)
+            val singleArg = parsedProperty.args.singleOrNull() as? Arg.Property
+            // Only return non-trivial parsed properties so that we don't show garbage during the initial input.
+            // However, to show responsiveness, we do want to show some output ("Modifier") when the user start typing
+            if (singleArg == null || singleArg.className != "") parsedProperty else ParsedStyleBlock(emptyList())
+        }
     }
 
     val parsedModifiers = cssBySelector.filterIsInstance<ParsedStyleBlock>()
