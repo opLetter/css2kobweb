@@ -16,5 +16,5 @@ kotlin {
 }
 
 application {
-    mainClass.set("io.github.opletter.css2kobweb.MainKt")
+    mainClass = "io.github.opletter.css2kobweb.MainKt"
 }
