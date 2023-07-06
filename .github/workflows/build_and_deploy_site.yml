@@ -24,9 +24,9 @@ jobs:
     defaults:
       run:
         shell: bash
-    
+
     env:
-      KOBWEB_CLI_VERSION: 0.9.12
+      KOBWEB_CLI_VERSION: 0.9.13
 
     steps:
       - name: Checkout
