@@ -15,14 +15,11 @@ internal fun List<Pair<String, ParsedProperty>>.postProcessProperties(): List<Pa
         .combineBackgroundPosition() // must be before combineBackgroundModifiers
         .combineBackgroundModifiers()
         .combineAnimationModifiers()
-        .values.map {
-            if (it.name == "width" && it.args.single() == Arg.UnitNum.of("100%")) {
-                ParsedProperty("fillMaxWidth")
-            } else if (it.name == "height" && it.args.single() == Arg.UnitNum.of("100%")) {
-                ParsedProperty("fillMaxHeight")
-            } else if (it.name == "size" && it.args.single() == Arg.UnitNum.of("100%")) {
-                ParsedProperty("fillMaxSize")
-            } else it
+        .values.map { property ->
+            val matchedFunction = setOf("width", "height", "size").find { it == property.name }
+            if (matchedFunction != null && property.args.single() == Arg.UnitNum.of("100%"))
+                ParsedProperty("fillMax${matchedFunction.replaceFirstChar(Char::uppercase)}")
+            else property
         }
 }
 
