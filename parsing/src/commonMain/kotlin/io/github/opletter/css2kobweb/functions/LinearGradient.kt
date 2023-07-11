@@ -8,6 +8,8 @@ internal fun Arg.Function.Companion.linearGradient(value: String): Arg.Function 
     val parts = value.splitNotInParens(',')
     val argsAsColors = parts.mapNotNull { Arg.asColorOrNull(it) }
     val firstAsUnitNum = Arg.UnitNum.ofOrNull(parts[0], zeroUnit = "deg")
+    // check for color value, keeping in mind that there may be a percentage value in the arg
+    val firstHasColor = Arg.asColorOrNull(parts[0].splitNotInParens(' ').first()) != null
 
     val (x, y) = parts[0].split(' ').partition { it == "left" || it == "right" }
     val direction = Arg.Property(
@@ -22,14 +24,12 @@ internal fun Arg.Function.Companion.linearGradient(value: String): Arg.Function 
         if (firstAsUnitNum != null) {
             return linearGradientOf(firstAsUnitNum, argsAsColors[0], argsAsColors[1])
         }
-        if (Arg.asColorOrNull(parts[0].substringBefore(' ')) == null) {
+        if (!firstHasColor) {
             return linearGradientOf(direction, argsAsColors[0], argsAsColors[1])
         }
     }
 
-    val mainArg = if (Arg.asColorOrNull(parts[0].substringBefore(' ')) == null) {
-        firstAsUnitNum ?: direction
-    } else null
+    val mainArg = if (!firstHasColor) firstAsUnitNum ?: direction else null
 
     val lambdaFunctions = gradientColorStopList(parts.drop(if (mainArg == null) 0 else 1))
 
