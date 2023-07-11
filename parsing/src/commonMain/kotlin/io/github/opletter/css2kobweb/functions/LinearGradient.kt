@@ -1,7 +1,6 @@
 package io.github.opletter.css2kobweb.functions
 
 import io.github.opletter.css2kobweb.Arg
-import io.github.opletter.css2kobweb.kebabToPascalCase
 import io.github.opletter.css2kobweb.splitNotInParens
 
 internal fun Arg.Function.Companion.linearGradient(value: String): Arg.Function {
@@ -14,7 +13,7 @@ internal fun Arg.Function.Companion.linearGradient(value: String): Arg.Function 
     val (x, y) = parts[0].split(' ').partition { it == "left" || it == "right" }
     val direction = Arg.Property(
         "LinearGradient.Direction",
-        (y + x).joinToString("") { kebabToPascalCase(it) },
+        (y + x).joinToString("") { it.replaceFirstChar(Char::uppercase) },
     )
 
     if (parts.size == 2 && argsAsColors.size == 2) {
