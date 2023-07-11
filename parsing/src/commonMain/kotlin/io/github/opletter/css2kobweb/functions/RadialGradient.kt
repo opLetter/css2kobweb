@@ -1,7 +1,6 @@
 package io.github.opletter.css2kobweb.functions
 
 import io.github.opletter.css2kobweb.Arg
-import io.github.opletter.css2kobweb.kebabToPascalCase
 import io.github.opletter.css2kobweb.splitNotInParens
 
 internal fun Arg.Function.Companion.radialGradient(value: String): Arg.Function {
@@ -15,7 +14,7 @@ internal fun Arg.Function.Companion.radialGradient(value: String): Arg.Function 
 
             val shape = if (shapeParts.any { it == "circle" }) "Circle" else "Ellipse"
             val shapeSize = (shapeParts - setOf("circle", "ellipse")).map {
-                Arg.UnitNum.ofOrNull(it) ?: Arg.Property("RadialGradient.Extent", kebabToPascalCase(it))
+                Arg.UnitNum.ofOrNull(it) ?: Arg.Property.fromKebabValue("RadialGradient.Extent", it)
             }
 
             if (shapeSize.isEmpty()) Arg.Property("RadialGradient.Shape", shape)

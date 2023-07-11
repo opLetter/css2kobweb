@@ -147,9 +147,8 @@ private fun Map<String, ParsedProperty>.combineAnimationModifiers(): Map<String,
         val (name, otherArgs) = combinedArgs.partition { it.toString().startsWith("name =") }
 
         name.singleOrNull()?.let { arg ->
-            val nameStr = arg.toString().removeSurrounding("name = \"", "\"").let { kebabToPascalCase(it) }
             Arg.ExtensionCall(
-                Arg.Property(null, nameStr),
+                Arg.Property.fromKebabValue(null, arg.toString().removeSurrounding("name = \"", "\"")),
                 Arg.Function("toAnimation", listOf(Arg.Property(null, "colorMode")) + otherArgs)
             )
         } ?: Arg.Function("CSSAnimation", combinedArgs)

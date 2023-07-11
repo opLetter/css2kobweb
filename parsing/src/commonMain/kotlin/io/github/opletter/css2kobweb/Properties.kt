@@ -65,7 +65,7 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
     if (propertyName == "backgroundSize") {
         val args = value.splitNotInParens(',').map { subValue ->
             if (subValue in GlobalValues || subValue in setOf("cover", "contain")) {
-                Arg.Property("BackgroundSize", kebabToPascalCase(subValue))
+                Arg.Property.fromKebabValue("BackgroundSize", subValue)
             } else {
                 Arg.Function("BackgroundSize.of", subValue.splitNotInParens(' ').map { Arg.UnitNum.of(it) })
             }
@@ -75,7 +75,7 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
     if (propertyName == "backgroundRepeat") {
         val args = value.splitNotInParens(',').map { subValue ->
             val values = subValue.splitNotInParens(' ')
-                .map { Arg.Property(kebabToPascalCase(propertyName), kebabToPascalCase(it)) }
+                .map { Arg.Property.fromKebabValue(kebabToPascalCase(propertyName), it) }
 
             values.singleOrNull() ?: Arg.Function("BackgroundRepeat.of", values)
         }
@@ -92,7 +92,7 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
         val arg = if (num != null) {
             Arg.Function("AnimationIterationCount.of", Arg.RawNumber(num))
         } else {
-            Arg.Property("AnimationIterationCount", kebabToPascalCase(value))
+            Arg.Property.fromKebabValue("AnimationIterationCount", value)
         }
         return ParsedProperty(propertyName, arg)
     }
@@ -120,7 +120,7 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
 
     return value.splitNotBetween(setOf('(' to ')'), setOf(' ', ',', '/')).map { prop ->
         if (prop in GlobalValues) {
-            return@map Arg.Property(classNamesFromProperty(propertyName), kebabToPascalCase(prop))
+            return@map Arg.Property.fromKebabValue(classNamesFromProperty(propertyName), prop)
         }
 
         val unit = Arg.UnitNum.ofOrNull(prop)
@@ -190,7 +190,7 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
             return@map Arg.Function("$prefix$functionName", parseCssProperty(functionPropertyName, adjustedArgs).args)
         }
 
-        Arg.Property(className, kebabToPascalCase(prop))
+        Arg.Property.fromKebabValue(className, prop)
     }.let { ParsedProperty(propertyName, it) }
 }
 

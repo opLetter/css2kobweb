@@ -14,7 +14,7 @@ internal fun Arg.Function.Companion.positionOrNull(value: String): Arg? {
         1 -> {
             val arg = position.single()
             Arg.UnitNum.ofOrNull(arg)?.let { Arg.Function("CSSPosition", it) }
-                ?: Arg.Property("CSSPosition", kebabToPascalCase(arg))
+                ?: Arg.Property.fromKebabValue("CSSPosition", arg)
         }
 
         2 -> {
@@ -24,12 +24,11 @@ internal fun Arg.Function.Companion.positionOrNull(value: String): Arg? {
                     val notCenter = position.filter { it != "center" }
                     when (notCenter.size) {
                         0 -> Arg.Property("CSSPosition", "Center")
-                        1 -> Arg.Property("CSSPosition", kebabToPascalCase(notCenter.single()))
+                        1 -> Arg.Property.fromKebabValue("CSSPosition", notCenter.single())
                         2 -> {
                             val (x, y) = notCenter.partition { it in xEdges }
                             // nulls will be filtered out in validation step
-                            val propertyName = kebabToPascalCase("${y.singleOrNull()}-${x.singleOrNull()}")
-                            Arg.Property("CSSPosition", propertyName)
+                            Arg.Property.fromKebabValue("CSSPosition", "${y.singleOrNull()}-${x.singleOrNull()}")
                         }
 
                         else -> error("Unexpected notCenter size: ${notCenter.size}")
@@ -99,5 +98,5 @@ internal fun Arg.Function.Companion.positionOrNull(value: String): Arg? {
 internal fun Arg.Function.Companion.position(value: String): Arg =
     positionOrNull(value) ?: error("Invalid position: $value")
 
-private fun edge(name: String) = Arg.Property("Edge", kebabToPascalCase(name))
+private fun edge(name: String) = Arg.Property.fromKebabValue("Edge", name)
 private fun edge(name: String, unit: Arg.UnitNum) = Arg.Function("Edge.${kebabToPascalCase(name)}", unit)

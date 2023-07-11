@@ -85,7 +85,11 @@ sealed class Arg(private val value: String) {
         }
     }
 
-    class Property(val className: String?, val value: String) : Arg("${className?.let { "$it." }.orEmpty()}$value")
+    class Property(val className: String?, val value: String) : Arg(className?.let { "$it." }.orEmpty() + value) {
+        companion object {
+            fun fromKebabValue(className: String?, value: String) = Property(className, kebabToPascalCase(value))
+        }
+    }
 
     class NamedArg(val name: String, val value: Arg) : Arg("$name = $value")
 
