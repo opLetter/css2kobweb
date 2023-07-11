@@ -17,26 +17,22 @@ internal fun Arg.Function.Companion.linearGradient(value: String): Arg.Function 
     )
 
     if (parts.size == 2 && argsAsColors.size == 2) {
-        return linearGradientOf(argsAsColors[0], argsAsColors[1])
+        return linearGradientOf(argsAsColors)
     }
     if (parts.size == 3 && argsAsColors.size == 2) {
         if (firstAsUnitNum != null) {
-            return linearGradientOf(firstAsUnitNum, argsAsColors[0], argsAsColors[1])
+            return linearGradientOf(listOf(firstAsUnitNum) + argsAsColors)
         }
         if (!firstHasColor) {
-            return linearGradientOf(direction, argsAsColors[0], argsAsColors[1])
+            return linearGradientOf(listOf(direction) + argsAsColors)
         }
     }
 
     val mainArg = if (!firstHasColor) firstAsUnitNum ?: direction else null
-
     val lambdaFunctions = gradientColorStopList(parts.drop(if (mainArg == null) 0 else 1))
 
-    return linearGradientOf(
-        args = listOfNotNull(mainArg).toTypedArray(),
-        lambdaFunctions = lambdaFunctions,
-    )
+    return linearGradientOf(args = listOfNotNull(mainArg), lambdaFunctions = lambdaFunctions)
 }
 
-private fun linearGradientOf(vararg args: Arg, lambdaFunctions: List<Arg.Function> = emptyList()): Arg.Function =
-    Arg.Function("linearGradient", args.toList(), lambdaFunctions)
+private fun linearGradientOf(args: List<Arg>, lambdaFunctions: List<Arg.Function> = emptyList()): Arg.Function =
+    Arg.Function("linearGradient", args, lambdaFunctions)
