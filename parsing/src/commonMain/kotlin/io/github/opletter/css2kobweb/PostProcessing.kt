@@ -144,11 +144,12 @@ private fun Map<String, ParsedProperty>.combineAnimationModifiers(): Map<String,
         val existingArgs = (existingAnimationArgs?.get(index) as Arg.Function?)?.args.orEmpty()
         val combinedArgs = (existingArgs + args).sortedBy { argNames.indexOf(it.toString().substringBefore(" ")) }
 
-        val (name, otherArgs) = combinedArgs.partition { it.toString().startsWith("name =") }
+        val (name, otherArgs) = combinedArgs.partition { it is Arg.NamedArg && it.name == "name" }
 
         name.singleOrNull()?.let { arg ->
+            check(arg is Arg.NamedArg)
             Arg.ExtensionCall(
-                Arg.Property.fromKebabValue(null, arg.toString().removeSurrounding("name = \"", "\"")),
+                Arg.Property.fromKebabValue(null, arg.value.toString().removeSurrounding("\"")),
                 Arg.Function("toAnimation", listOf(Arg.Property(null, "colorMode")) + otherArgs)
             )
         } ?: Arg.Function("CSSAnimation", combinedArgs)
