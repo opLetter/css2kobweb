@@ -13,7 +13,7 @@ internal fun Arg.Function.Companion.radialGradient(value: String): Arg.Function 
         ?.let { shapeStr ->
             val shapeParts = shapeStr.splitNotInParens(' ')
 
-            val shape = if (shapeParts[0] == "circle") "Circle" else "Ellipse"
+            val shape = if (shapeParts.any { it == "circle" }) "Circle" else "Ellipse"
             val shapeSize = (shapeParts - setOf("circle", "ellipse")).map {
                 Arg.UnitNum.ofOrNull(it) ?: Arg.Property("RadialGradient.Extent", kebabToPascalCase(it))
             }
