@@ -50,7 +50,13 @@ private fun hslOrNull(prop: String): Arg.Function? {
 
 internal fun Arg.Companion.asColorOrNull(value: String): Arg? {
     if (value.startsWith("#") && ' ' !in value.trim()) {
-        return Arg.Function("Color.rgb", Arg.Hex(value.drop(1)))
+        val hexValue = if (value.length <= 5) {
+            value.drop(1).toList().joinToString("") { "$it$it" } // #RGBA = #RRGGBBAA = 0xRRGGBBAA
+        } else {
+            value.drop(1)
+        }
+        val function = if (hexValue.length == 8) "rgba" else "rgb"
+        return Arg.Function("Color.$function", Arg.Hex(hexValue))
     }
     val color = colors.firstOrNull { it.lowercase() == value }
     if (color != null) {
