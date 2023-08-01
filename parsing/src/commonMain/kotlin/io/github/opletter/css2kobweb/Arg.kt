@@ -34,6 +34,14 @@ sealed class Arg(private val value: String) {
         object Auto : UnitNum("numericAuto")
 
         companion object {
+            fun ofOrNull(str: String, zeroUnit: String = "px"): UnitNum? =
+                parseCalcNum(str.prependCalcToParens(), zeroUnit) as? UnitNum
+
+            fun of(str: String, zeroUnit: String = "px"): UnitNum {
+                val unitNum = if (str == "auto") Auto else ofOrNull(str, zeroUnit)
+                return requireNotNull(unitNum) { "Not a unit number: $str" }
+            }
+
             private fun String.prependCalcToParens(): String = fold("") { result, c ->
                 result + if (c == '(' && result.takeLast(4) != "calc") "calc$c" else c
             }
@@ -73,14 +81,6 @@ sealed class Arg(private val value: String) {
                     return Normal(num.toIntOrNull() ?: num.toDouble(), unit)
                 }
                 return (str.toIntOrNull() ?: str.toDoubleOrNull())?.let { RawNumber(it) }
-            }
-
-            fun ofOrNull(str: String, zeroUnit: String = "px"): UnitNum? =
-                parseCalcNum(str.prependCalcToParens(), zeroUnit) as? UnitNum
-
-            fun of(str: String, zeroUnit: String = "px"): UnitNum {
-                val unitNum = if (str == "auto") Auto else ofOrNull(str, zeroUnit)
-                return requireNotNull(unitNum) { "Not a unit number: $str" }
             }
         }
     }

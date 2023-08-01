@@ -6,7 +6,6 @@ import io.github.opletter.css2kobweb.splitNotInParens
 
 internal fun Arg.Function.Companion.positionOrNull(value: String): Arg? {
     val position = value.splitNotInParens(' ')
-
     val xEdges = setOf("left", "right")
     val yEdges = setOf("top", "bottom")
 
@@ -94,7 +93,6 @@ internal fun Arg.Function.Companion.positionOrNull(value: String): Arg? {
     }
 }
 
-// positionOrNull
 internal fun Arg.Function.Companion.position(value: String): Arg =
     positionOrNull(value) ?: error("Invalid position: $value")
 
