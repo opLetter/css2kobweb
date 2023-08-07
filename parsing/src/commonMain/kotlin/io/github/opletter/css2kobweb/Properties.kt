@@ -117,6 +117,10 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
             ParsedProperty(property, parseCssProperty(property, value).args)
         }
     }
+    // kobweb treats "nowrap" as if it was "no-wrap", so we need to handle it separately
+    if (propertyName == "whiteSpace" && value == "nowrap") {
+        return ParsedProperty(propertyName, Arg.Property("WhiteSpace", "NoWrap"))
+    }
 
     return value.splitNotBetween(setOf('(' to ')'), setOf(' ', ',', '/')).map { prop ->
         if (prop in GlobalValues) {
