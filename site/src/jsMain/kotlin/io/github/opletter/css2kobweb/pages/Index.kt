@@ -1,7 +1,6 @@
 package io.github.opletter.css2kobweb.pages
 
 import androidx.compose.runtime.*
-import com.varabyte.kobweb.compose.css.FontWeight
 import com.varabyte.kobweb.compose.css.Overflow
 import com.varabyte.kobweb.compose.css.OverflowWrap
 import com.varabyte.kobweb.compose.css.Resize
@@ -16,6 +15,7 @@ import com.varabyte.kobweb.compose.ui.styleModifier
 import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.silk.components.forms.Button
+import com.varabyte.kobweb.silk.components.forms.ButtonSize
 import com.varabyte.kobweb.silk.components.layout.SimpleGrid
 import com.varabyte.kobweb.silk.components.layout.numColumns
 import com.varabyte.kobweb.silk.components.style.ComponentStyle
@@ -143,8 +143,7 @@ fun CopyTextButton(textToCopy: String) {
             buttonText = "Copied!"
             window.setTimeout({ buttonText = "Copy" }, 2000)
         },
-        Modifier
-            .padding(topBottom = 0.25.cssRem, leftRight = 0.75.cssRem)
-            .fontWeight(FontWeight.Bold)
+        Modifier.fontSize(1.cssRem),
+        size = ButtonSize.SM,
     ) { Text(buttonText) }
 }
