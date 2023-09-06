@@ -42,7 +42,7 @@ val TextAreaStyle by ComponentStyle.base {
         .padding(topBottom = 0.5.cssRem, leftRight = 1.cssRem)
         .borderRadius(bottomLeft = 8.px, bottomRight = 8.px)
         .resize(Resize.None)
-        .overflowY(Overflow.Auto)
+        .overflow { y(Overflow.Auto) }
         .overflowWrap(OverflowWrap.Normal)
         .styleModifier { property("tab-size", 4) }
         .backgroundColor(colorMode.toSilkPalette().color)
@@ -94,7 +94,7 @@ fun HomePage() {
                         cssInput,
                         TextAreaStyle.toModifier()
                             .outlineStyle(LineStyle.None)
-                            .borderStyle(LineStyle.None)
+                            .border { style(LineStyle.None) }
                             .toAttrs {
                                 attr("spellcheck", "false")
                                 attr("data-enable-grammarly", "false")
@@ -110,7 +110,7 @@ fun HomePage() {
                 }
             }
             // outer column needed for child's flex-grow (while keeping overflowY)
-            Column(Modifier.overflowX(Overflow.Auto)) {
+            Column(Modifier.overflow { x(Overflow.Auto) }) {
                 Column(
                     Modifier
                         .fillMaxWidth()
