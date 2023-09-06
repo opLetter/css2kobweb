@@ -206,6 +206,7 @@ private fun classNamesFromProperty(propertyName: String): String {
         "gridTemplateRows", "gridTemplateColumns" -> "GridTemplate"
         "gridAutoRows", "gridAutoColumns" -> "GridAuto"
         "border", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight",
+        "borderTopStyle", "borderBottomStyle", "borderLeftStyle", "borderRightStyle",
         "outline", "outlineStyle",
         -> "LineStyle"
 
