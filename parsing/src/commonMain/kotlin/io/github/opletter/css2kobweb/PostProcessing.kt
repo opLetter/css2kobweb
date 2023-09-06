@@ -4,13 +4,18 @@ import io.github.opletter.css2kobweb.functions.position
 import io.github.opletter.css2kobweb.functions.transition
 
 internal fun List<Pair<String, ParsedProperty>>.postProcessProperties(): List<ParsedProperty> {
-    return combineStyleModifiers()
+    return combineLambdaModifiers()
         .replaceKeysIfEqual(setOf("width", "height"), "size")
         .replaceKeysIfEqual(setOf("minWidth", "minHeight"), "minSize")
         .replaceKeysIfEqual(setOf("maxWidth", "maxHeight"), "maxSize")
+        // TODO: consider how combining directional modifiers fits in with planned shorthand dsl
+        //  currently we transform "margin-right: 1px; margin-left: 1px;" into "margin(leftRight = 1.px)"
+        //  but soon this will be "margin { right(1.px); left(1.px) }" which is more accurate
+        //  I see 2 things directional parsing could then support
+        //  1. "margin { leftRight(1.px) }" - if kobweb supports that
+        //  2. only transforming complete values (e.g. "margin(leftRight = 1.px, topBottom = 2.px)")
         .combineDirectionalModifiers("margin")
         .combineDirectionalModifiers("padding")
-        .combineDirectionalModifiers("borderWidth") { "border${it}Width" }
         .combineTransitionModifiers()
         .combineBackgroundPosition() // must be before combineBackgroundModifiers
         .combineBackgroundModifiers()
@@ -23,14 +28,14 @@ internal fun List<Pair<String, ParsedProperty>>.postProcessProperties(): List<Pa
         }
 }
 
-private fun List<Pair<String, ParsedProperty>>.combineStyleModifiers(): Map<String, ParsedProperty> {
-    val (styleModifiers, normalModifiers) = partition { it.first == "styleModifier" }
-
-    if (styleModifiers.isEmpty()) return normalModifiers.toMap()
-
-    val combinedStyleModifier = styleModifiers.flatMap { it.second.lambdaStatements }
-        .let { "styleModifier" to Arg.Function("styleModifier", lambdaStatements = it) }
-    return (normalModifiers + combinedStyleModifier).toMap()
+private fun List<Pair<String, ParsedProperty>>.combineLambdaModifiers(): Map<String, ParsedProperty> {
+    return groupBy({ it.first }, { it.second }).mapValues { (name, properties) ->
+        if (properties.all { it.args.isEmpty() }) {
+            Arg.Function(name, lambdaStatements = properties.flatMap { it.lambdaStatements })
+        } else { // should only be one but if not just take last
+            properties.last()
+        }
+    }
 }
 
 private fun Map<String, ParsedProperty>.combineBackgroundPosition(): Map<String, ParsedProperty> {
@@ -205,10 +210,7 @@ private fun Map<String, ParsedProperty>.replaceKeysIfEqual(
     } else this
 }
 
-private fun Map<String, ParsedProperty>.combineDirectionalModifiers(
-    property: String,
-    getPropertyByDirection: (direction: String) -> String = { "$property$it" },
-): Map<String, ParsedProperty> {
+private fun Map<String, ParsedProperty>.combineDirectionalModifiers(property: String): Map<String, ParsedProperty> {
     // consider whether this should be combined with the above replaceKeysIfEqual function
     fun MutableMap<String, Arg.NamedArg>.replaceIfEqual(keysToReplace: Set<String>, newKey: String) {
         val values = keysToReplace.mapNotNull { get(it)?.value }
@@ -221,7 +223,7 @@ private fun Map<String, ParsedProperty>.combineDirectionalModifiers(
     val directions = setOf("Top", "Bottom", "Left", "Right") // capitalized for camelCase
     val processedArgs = buildMap {
         directions.forEach { direction ->
-            this@combineDirectionalModifiers[getPropertyByDirection(direction)]
+            this@combineDirectionalModifiers[property + direction]
                 ?.let { put(direction.lowercase(), Arg.NamedArg(direction.lowercase(), it.args.single())) }
         }
         replaceIfEqual(setOf("left", "right"), "leftRight")
@@ -240,6 +242,5 @@ private fun Map<String, ParsedProperty>.combineDirectionalModifiers(
         processedArgs["all"]?.value,
     )
 
-    return minus(directions.map { getPropertyByDirection(it) }.toSet()) +
-            (property to ParsedProperty(property, finalArgs))
+    return minus(directions.map { property + it }.toSet()) + (property to ParsedProperty(property, finalArgs))
 }

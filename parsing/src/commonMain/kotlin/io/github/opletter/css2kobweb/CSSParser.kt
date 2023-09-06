@@ -1,5 +1,7 @@
 package io.github.opletter.css2kobweb
 
+import io.github.opletter.css2kobweb.constants.shorthandProperties
+
 internal fun parseCss(css: String): List<CssParseResult> {
     return css.splitIntoCssBlocks().mapNotNull { (selector, properties) ->
         val subBlocks = properties.splitIntoCssBlocks()
@@ -28,7 +30,7 @@ internal fun getProperties(str: String): List<ParsedProperty> {
             val propertyArgs = listOf(name, value).map { Arg.Literal.withQuotesIfNecessary(it) }
             Arg.Function("styleModifier", lambdaStatements = listOf(Arg.Function("property", propertyArgs)))
         } else {
-            parseCssProperty(
+            val initialParsedProperty = parseCssProperty(
                 propertyName = kebabToCamelCase(name),
                 value = value
                     .replace("!important", "")
@@ -36,6 +38,20 @@ internal fun getProperties(str: String): List<ParsedProperty> {
                     .joinToString(" ") { it.trim() }
                     .replace("  ", " "),
             )
+
+            // turn shorthand properties into dsl lambdas
+            shorthandProperties[initialParsedProperty.name]?.let { shorthandFun ->
+                ParsedProperty(
+                    initialParsedProperty.name.substringBefore(shorthandFun),
+                    lambdaStatements = listOf(
+                        Arg.Function(
+                            shorthandFun.replaceFirstChar { it.lowercase() },
+                            initialParsedProperty.args,
+                            initialParsedProperty.lambdaStatements
+                        )
+                    )
+                )
+            } ?: initialParsedProperty
         }
 
         parsedProperty.name to parsedProperty
