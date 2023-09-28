@@ -1,13 +1,14 @@
 package io.github.opletter.css2kobweb
 
 import androidx.compose.runtime.Composable
-import com.varabyte.kobweb.compose.css.CSSTransition
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.graphics.Color
-import com.varabyte.kobweb.compose.ui.modifiers.*
+import com.varabyte.kobweb.compose.ui.modifiers.fontFamily
+import com.varabyte.kobweb.compose.ui.modifiers.fontSize
+import com.varabyte.kobweb.compose.ui.modifiers.marginBlock
+import com.varabyte.kobweb.compose.ui.modifiers.minHeight
 import com.varabyte.kobweb.core.App
 import com.varabyte.kobweb.silk.SilkApp
-import com.varabyte.kobweb.silk.components.forms.ButtonStyle
 import com.varabyte.kobweb.silk.components.layout.Surface
 import com.varabyte.kobweb.silk.components.style.breakpoint.Breakpoint
 import com.varabyte.kobweb.silk.components.style.common.SmoothColorStyle
@@ -18,10 +19,7 @@ import com.varabyte.kobweb.silk.init.registerBaseStyle
 import com.varabyte.kobweb.silk.theme.colors.palette.background
 import com.varabyte.kobweb.silk.theme.colors.palette.button
 import com.varabyte.kobweb.silk.theme.colors.palette.color
-import com.varabyte.kobweb.silk.theme.modifyComponentStyleBase
 import org.jetbrains.compose.web.css.cssRem
-import org.jetbrains.compose.web.css.ms
-import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.css.vh
 
 @InitSilk
@@ -56,12 +54,6 @@ fun updateTheme(ctx: InitSilkContext) {
             focus = ctx.theme.palettes.light.button.focus,
             pressed = Color.rgb(0xF97068).darkened(0.25f),
         )
-    }
-
-    ctx.theme.modifyComponentStyleBase(ButtonStyle) {
-        Modifier
-            .borderRadius(6.px)
-            .transition(CSSTransition("background-color", 200.ms))
     }
 }
 
