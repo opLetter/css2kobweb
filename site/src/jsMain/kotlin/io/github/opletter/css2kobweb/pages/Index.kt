@@ -22,7 +22,9 @@ import com.varabyte.kobweb.silk.components.style.ComponentStyle
 import com.varabyte.kobweb.silk.components.style.base
 import com.varabyte.kobweb.silk.components.style.toAttrs
 import com.varabyte.kobweb.silk.components.style.toModifier
-import com.varabyte.kobweb.silk.theme.toSilkPalette
+import com.varabyte.kobweb.silk.theme.colors.palette.background
+import com.varabyte.kobweb.silk.theme.colors.palette.color
+import com.varabyte.kobweb.silk.theme.colors.palette.toPalette
 import io.github.opletter.css2kobweb.CodeBlock
 import io.github.opletter.css2kobweb.components.layouts.PageLayout
 import io.github.opletter.css2kobweb.components.widgets.KotlinCode
@@ -45,8 +47,8 @@ val TextAreaStyle by ComponentStyle.base {
         .overflow { y(Overflow.Auto) }
         .overflowWrap(OverflowWrap.Normal)
         .styleModifier { property("tab-size", 4) }
-        .backgroundColor(colorMode.toSilkPalette().color)
-        .color(colorMode.toSilkPalette().background)
+            .backgroundColor(colorMode.toPalette().color)
+            .color(colorMode.toPalette().background)
 }
 
 val TextAreaLabelBarStyle by ComponentStyle.base {

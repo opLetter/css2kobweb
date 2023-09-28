@@ -31,8 +31,8 @@ kotlin {
             dependencies {
                 implementation(compose.html.core)
                 implementation(libs.kobweb.core)
-                implementation(libs.kobweb.silk.core)
-                implementation(libs.kobweb.silk.icons.fa)
+                implementation(libs.kobweb.silk)
+                implementation(libs.silk.icons.fa)
                 implementation(projects.parsing)
              }
         }

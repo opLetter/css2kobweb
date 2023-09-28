@@ -15,7 +15,9 @@ import com.varabyte.kobweb.silk.components.style.toModifier
 import com.varabyte.kobweb.silk.init.InitSilk
 import com.varabyte.kobweb.silk.init.InitSilkContext
 import com.varabyte.kobweb.silk.init.registerBaseStyle
-import com.varabyte.kobweb.silk.theme.colors.MutableSilkPalette
+import com.varabyte.kobweb.silk.theme.colors.palette.background
+import com.varabyte.kobweb.silk.theme.colors.palette.button
+import com.varabyte.kobweb.silk.theme.colors.palette.color
 import com.varabyte.kobweb.silk.theme.modifyComponentStyleBase
 import org.jetbrains.compose.web.css.cssRem
 import org.jetbrains.compose.web.css.ms
@@ -48,7 +50,7 @@ fun updateTheme(ctx: InitSilkContext) {
     ctx.theme.palettes.light.apply {
         background = Color.rgb(188, 190, 196)
         color = Color.rgb(30, 31, 34)
-        button = MutableSilkPalette.Button(
+        button.set(
             default = Color.rgb(0xF97068),
             hover = Color.rgb(0xF97068).darkened(0.1f),
             focus = ctx.theme.palettes.light.button.focus,
