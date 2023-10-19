@@ -7,7 +7,6 @@ import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.foundation.layout.Row
 import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
-import com.varabyte.kobweb.compose.ui.attrsModifier
 import com.varabyte.kobweb.compose.ui.modifiers.alignSelf
 import com.varabyte.kobweb.compose.ui.modifiers.margin
 import com.varabyte.kobweb.compose.ui.modifiers.rowGap
@@ -49,8 +48,6 @@ fun Footer(modifier: Modifier = Modifier, linkVariant: ComponentVariant? = null)
             Link(
                 path = "https://github.com/varabyte/kobweb",
                 text = "Kobweb",
-                modifier = Modifier
-                    .attrsModifier { attr("referrerpolicy", "no-referrer") },
                 variant = linkVariant,
             )
         }

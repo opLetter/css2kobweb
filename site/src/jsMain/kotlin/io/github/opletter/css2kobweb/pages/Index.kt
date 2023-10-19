@@ -47,8 +47,8 @@ val TextAreaStyle by ComponentStyle.base {
         .overflow { y(Overflow.Auto) }
         .overflowWrap(OverflowWrap.Normal)
         .styleModifier { property("tab-size", 4) }
-            .backgroundColor(colorMode.toPalette().color)
-            .color(colorMode.toPalette().background)
+        .backgroundColor(colorMode.toPalette().color)
+        .color(colorMode.toPalette().background)
 }
 
 val TextAreaLabelBarStyle by ComponentStyle.base {

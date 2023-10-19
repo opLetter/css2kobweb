@@ -15,7 +15,7 @@ import com.varabyte.kobweb.silk.components.style.common.SmoothColorStyle
 import com.varabyte.kobweb.silk.components.style.toModifier
 import com.varabyte.kobweb.silk.init.InitSilk
 import com.varabyte.kobweb.silk.init.InitSilkContext
-import com.varabyte.kobweb.silk.init.registerBaseStyle
+import com.varabyte.kobweb.silk.init.registerStyleBase
 import com.varabyte.kobweb.silk.theme.colors.palette.background
 import com.varabyte.kobweb.silk.theme.colors.palette.button
 import com.varabyte.kobweb.silk.theme.colors.palette.color
@@ -25,7 +25,7 @@ import org.jetbrains.compose.web.css.vh
 @InitSilk
 fun updateTheme(ctx: InitSilkContext) {
     with(ctx.stylesheet) {
-        registerBaseStyle("body") {
+        registerStyleBase("body") {
             Modifier.fontFamily("system-ui", "Segoe UI", "Tahoma", "Helvetica", "sans-serif")
         }
         registerStyle("h1") {
@@ -38,7 +38,7 @@ fun updateTheme(ctx: InitSilkContext) {
                 Modifier.fontSize(3.cssRem)
             }
         }
-        registerBaseStyle("h2") {
+        registerStyleBase("h2") {
             Modifier.marginBlock(0.cssRem, 0.cssRem)
         }
     }
