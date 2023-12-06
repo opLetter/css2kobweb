@@ -15,10 +15,17 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
             ParsedStyleBlock(getProperties(cleanedCss))
         } else {
             val parsedProperty = parseCssProperty("", cleanedCss)
-            val singleArg = parsedProperty.args.singleOrNull() as? Arg.Property
+            val singleArg = parsedProperty.args.singleOrNull()
             // Only return non-trivial parsed properties so that we don't show garbage during the initial input.
             // However, to show responsiveness, we do want to show some output ("Modifier") when the user start typing
-            if (singleArg == null || singleArg.className != "") parsedProperty else ParsedStyleBlock(emptyList())
+            if (singleArg != null && (singleArg !is Arg.Property || singleArg.className != "")) {
+                parsedProperty
+            } else if (cleanedCss.trimEnd().last() == '{') {
+                // display an empty ComponentStyle block if it looks like the css will have a selector
+                ParsedComponentStyles(listOf(ParsedComponentStyle("", emptyMap())))
+            } else {
+                ParsedStyleBlock(emptyList())
+            }
         }
     }
 
