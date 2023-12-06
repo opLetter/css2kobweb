@@ -29,7 +29,12 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
         }
     }
 
-    val parsedModifiers = cssBySelector.filterIsInstance<ParsedStyleBlock>()
+    val parsedModifiers = cssBySelector.filterIsInstance<ParsedStyleBlock>().run {
+        // If there are only empty blocks, it's likely the user is still typing, so we show them
+        // However if there are non-empty blocks, then we hide any empty blocks since they're not needed
+        // Note that empty blocks may arise if the original block only contained css vars (which are inlined)
+        filter { it.properties.isNotEmpty() }.ifEmpty { this }
+    }
 
     val modifiersBySelector = parsedModifiers.flatMapIndexed { index, modifier ->
         val allSelectors = modifier.label.splitNotInParens(',')

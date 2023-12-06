@@ -7,10 +7,7 @@ internal fun parseCss(css: String): List<CssParseResult> {
         val subBlocks = properties.splitIntoCssBlocks()
 
         if (subBlocks.isEmpty()) {
-            val modifier = ParsedStyleBlock(getProperties(properties), selector)
-            if (modifier.properties.isEmpty())
-                return@mapNotNull null // may happen if all were css vars
-            modifier
+            ParsedStyleBlock(getProperties(properties), selector)
         } else if (selector.startsWith("@keyframes")) {
             val modifiers = subBlocks.map { (subSelector, subProperties) ->
                 ParsedStyleBlock(getProperties(subProperties), subSelector)
