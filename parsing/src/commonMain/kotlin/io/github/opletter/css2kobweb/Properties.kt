@@ -130,7 +130,7 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
         val unit = Arg.UnitNum.ofOrNull(prop)
         if (unit != null) {
             val takeRawZero = setOf(
-                "zIndex", "opacity", "lineHeight", "flexGrow", "flexShrink", "flex", "order", "tabIndex",
+                "zIndex", "opacity", "lineHeight", "flexGrow", "flexShrink", "flex", "order",
                 "gridColumnEnd", "gridColumnStart", "gridRowEnd", "gridRowStart",
             )
 
