@@ -31,7 +31,7 @@ sealed class Arg(private val value: String) {
             "$arg1Str $operation $arg2Str"
         })
 
-        object Auto : UnitNum("numericAuto")
+        object Auto : UnitNum("autoLength")
 
         companion object {
             fun ofOrNull(str: String, zeroUnit: String = "px"): UnitNum? =
