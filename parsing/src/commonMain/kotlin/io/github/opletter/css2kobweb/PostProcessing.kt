@@ -62,6 +62,11 @@ private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String
     val existingBackgroundArgs = existingBackground?.args
         ?.dropWhile { !it.toString().startsWith("CSS") } // filter color arg
         ?.ifEmpty { null }
+        // Un-reverse the initial parsing back to line up with order of other properties,
+        // after which we will reverse again to match the order in kobweb.
+        // Note that it's important to do parsing in declaration order, as if "background" specifies two images
+        // but "backgroundImage" only specifies one, we want to use the latter's value for the first image
+        ?.reversed()
 
     val propertyKeys = setOf(
         "backgroundImage",
@@ -76,15 +81,18 @@ private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String
     val argNames = propertyKeys.map { it.getArgName() }
 
     val propertyValues = propertyKeys.mapNotNull { prop ->
-        this[prop]?.let { prop to it.args.reversed() } // args order reversed as in kobweb
+        this[prop]?.let { prop to it.args }
     }.toMap()
 
     if (propertyValues.isEmpty() || (existingBackgroundArgs == null && propertyValues.values.all { it.size == 1 }))
         return this
 
-    val backgroundProperties = propertyValues.values.first().indices.map { index ->
-        val args = propertyValues.map { (prop, args) ->
-            val originalArg = args[index]
+    // According to the CSS spec, the number of layers is determined by the # of background-image values,
+    // which can come from either the "backgroundImage" or "background"
+    val layerIndices = propertyValues["backgroundImage"]?.indices ?: existingBackgroundArgs?.indices
+    val backgroundProperties = layerIndices?.map { index ->
+        val args = propertyValues.mapNotNull { (prop, args) ->
+            val originalArg = args.getOrNull(index) ?: return@mapNotNull null
             val adjustedArg = if (prop == "backgroundImage" && originalArg is Arg.Function) {
                 if (originalArg.name == "url")
                     Arg.Function("BackgroundImage.of", originalArg)
@@ -97,7 +105,7 @@ private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String
         val combinedArgs = (existingArgs + args).sortedBy { argNames.indexOf(it.toString().substringBefore(" ")) }
 
         Arg.Function("CSSBackground", combinedArgs)
-    }
+    }.orEmpty().reversed()  // args order reversed as in kobweb
 
     val color = this["backgroundColor"]?.args
         ?: listOfNotNull(existingBackground?.args?.firstOrNull().takeIf { !it.toString().startsWith("CSS") })
