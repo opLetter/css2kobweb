@@ -227,14 +227,14 @@ private fun Map<String, ParsedProperty>.combineDirectionalModifiers(property: St
         }
     }
 
-    val directions = setOf("Top", "Bottom", "Left", "Right") // capitalized for camelCase
+    val directions = setOf("Top", "Right", "Bottom", "Left") // capitalized for camelCase
     val processedArgs = buildMap {
         directions.forEach { direction ->
             this@combineDirectionalModifiers[property + direction]
                 ?.let { put(direction.lowercase(), Arg.NamedArg(direction.lowercase(), it.args.single())) }
         }
         replaceIfEqual(setOf("left", "right"), "leftRight")
-        if ("leftRight" in this)
+        if ("leftRight" in this || ("left" !in this && "right" !in this))
             replaceIfEqual(setOf("top", "bottom"), "topBottom")
         replaceIfEqual(setOf("leftRight", "topBottom"), "all")
     }.ifEmpty { return this }
@@ -246,7 +246,7 @@ private fun Map<String, ParsedProperty>.combineDirectionalModifiers(property: St
         processedArgs["right"],
         processedArgs["bottom"],
         processedArgs["left"],
-        processedArgs["all"]?.value,
+        processedArgs["all"]?.value, // ignore name for "all"
     )
 
     return minus(directions.map { property + it }.toSet()) + (property to ParsedProperty(property, finalArgs))
