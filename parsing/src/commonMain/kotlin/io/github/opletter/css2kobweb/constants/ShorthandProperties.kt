@@ -1,8 +1,14 @@
 package io.github.opletter.css2kobweb.constants
 
-class ShorthandProperty(val property: String, val subProperties: List<String>)
+import io.github.opletter.css2kobweb.Arg
+import io.github.opletter.css2kobweb.ParsedProperty
 
-val shorthandProperties = listOf(
+private class ShorthandProperty(val property: String, val subProperties: List<String>)
+
+// TODO: In the future we should have an option for "strict" matching the original CSS (using the scope functions)
+//  vs. a mode that uses named args instead. Note that even in strict mode, if all shorthands are specified, we
+//  should probably still use named args if available.
+private val shorthandProperties = listOf(
     ShorthandProperty("border", listOf("Width", "Style", "Color")),
     ShorthandProperty("borderTop", listOf("Width", "Style", "Color")),
     ShorthandProperty("borderBottom", listOf("Width", "Style", "Color")),
@@ -17,3 +23,14 @@ val shorthandProperties = listOf(
 ).flatMap { shortHand ->
     shortHand.subProperties.map { "${shortHand.property}$it" to it }
 }.toMap()
+
+fun ParsedProperty.intoShorthandLambdaProperty(): ParsedProperty {
+    return shorthandProperties[name]?.let { shorthandFun ->
+        ParsedProperty(
+            name.substringBefore(shorthandFun),
+            lambdaStatements = listOf(
+                Arg.Function(shorthandFun.replaceFirstChar { it.lowercase() }, args, lambdaStatements)
+            )
+        )
+    } ?: this
+}

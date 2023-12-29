@@ -1,19 +1,18 @@
 package io.github.opletter.css2kobweb
 
+import io.github.opletter.css2kobweb.constants.intoShorthandLambdaProperty
 import io.github.opletter.css2kobweb.functions.position
 import io.github.opletter.css2kobweb.functions.transition
 
 internal fun List<Pair<String, ParsedProperty>>.postProcessProperties(): List<ParsedProperty> {
-    return combineLambdaModifiers()
+    return map {
+        val newProp = it.second.intoShorthandLambdaProperty()
+        newProp.name to newProp
+    }
+        .combineLambdaModifiers()
         .replaceKeysIfEqual(setOf("width", "height"), "size")
         .replaceKeysIfEqual(setOf("minWidth", "minHeight"), "minSize")
         .replaceKeysIfEqual(setOf("maxWidth", "maxHeight"), "maxSize")
-        // TODO: consider how combining directional modifiers fits in with planned shorthand dsl
-        //  currently we transform "margin-right: 1px; margin-left: 1px;" into "margin(leftRight = 1.px)"
-        //  but soon this will be "margin { right(1.px); left(1.px) }" which is more accurate
-        //  I see 2 things directional parsing could then support
-        //  1. "margin { leftRight(1.px) }" - if kobweb supports that
-        //  2. only transforming complete values (e.g. "margin(leftRight = 1.px, topBottom = 2.px)")
         .combineDirectionalModifiers("margin")
         .combineDirectionalModifiers("padding")
         .combineTransitionModifiers()
