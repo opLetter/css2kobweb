@@ -14,7 +14,6 @@ import com.varabyte.kobweb.compose.ui.modifiers.textAlign
 import com.varabyte.kobweb.silk.components.icons.fa.FaGithub
 import com.varabyte.kobweb.silk.components.navigation.Link
 import com.varabyte.kobweb.silk.components.style.ComponentStyle
-import com.varabyte.kobweb.silk.components.style.ComponentVariant
 import com.varabyte.kobweb.silk.components.style.base
 import com.varabyte.kobweb.silk.components.style.toModifier
 import com.varabyte.kobweb.silk.components.text.SpanText
@@ -29,7 +28,7 @@ val FooterStyle by ComponentStyle.base {
 }
 
 @Composable
-fun Footer(modifier: Modifier = Modifier, linkVariant: ComponentVariant? = null) {
+fun Footer(modifier: Modifier = Modifier) {
     Column(
         FooterStyle.toModifier().then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -37,19 +36,11 @@ fun Footer(modifier: Modifier = Modifier, linkVariant: ComponentVariant? = null)
         Row(verticalAlignment = Alignment.CenterVertically) {
             FaGithub()
             SpanText(" This site is ")
-            Link(
-                path = "https://github.com/opLetter/css2kobweb",
-                text = "open source",
-                variant = linkVariant,
-            )
+            Link(path = "https://github.com/opLetter/css2kobweb", text = "open source")
         }
         Row {
             SpanText("Made with ")
-            Link(
-                path = "https://github.com/varabyte/kobweb",
-                text = "Kobweb",
-                variant = linkVariant,
-            )
+            Link(path = "https://github.com/varabyte/kobweb", text = "Kobweb")
         }
     }
 }
