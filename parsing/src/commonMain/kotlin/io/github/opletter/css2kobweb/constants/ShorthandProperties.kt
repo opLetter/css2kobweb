@@ -17,8 +17,11 @@ private val shorthandProperties = listOf(
     ShorthandProperty("overflow", listOf("X", "Y")),
     ShorthandProperty("paddingInline", listOf("Start", "End")),
     ShorthandProperty("paddingBlock", listOf("Start", "End")),
-    ShorthandProperty("padding", listOf("Top", "Right", "Bottom", "Left")),
-    ShorthandProperty("margin", listOf("Top", "Right", "Bottom", "Left")),
+    // Currently don't use scope for these as it's usually unnecessary, and instead we can provide smart reduced
+    // named properties (like turning equal "top" and "bottom" into "topBottom").
+    // These should be re-enabled after the to-do above is addressed.
+//    ShorthandProperty("padding", listOf("Top", "Right", "Bottom", "Left")),
+//    ShorthandProperty("margin", listOf("Top", "Right", "Bottom", "Left")),
     ShorthandProperty("font", listOf("Alternates", "Caps", "EastAsian", "Emoji", "Ligatures", "Numeric", "Settings")),
 ).flatMap { shortHand ->
     shortHand.subProperties.map { "${shortHand.property}$it" to it }
