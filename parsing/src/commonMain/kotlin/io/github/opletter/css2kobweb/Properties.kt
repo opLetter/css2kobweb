@@ -194,8 +194,18 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
             return@map Arg.Function("$prefix$functionName", parseCssProperty(functionPropertyName, adjustedArgs).args)
         }
 
-        Arg.Property.fromKebabValue(className, prop)
+        Arg.Property.fromKebabValue(className, prop).let {
+            if (it.value == "Auto" && it.className != null && takesAutoLength(it.className)) {
+                Arg.UnitNum.Auto
+            } else it
+        }
     }.let { ParsedProperty(propertyName, it) }
+}
+
+// Loose check for properties that often use "auto" as a length
+private fun takesAutoLength(className: String): Boolean {
+    return className.startsWith("Padding") || className.startsWith("Margin")
+            || className.endsWith("Width") || className.endsWith("Height")
 }
 
 private fun classNamesFromProperty(propertyName: String): String {
