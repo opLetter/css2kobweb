@@ -1,7 +1,6 @@
 package io.github.opletter.css2kobweb
 
 import io.github.opletter.css2kobweb.functions.*
-import kotlin.math.max
 import kotlin.math.min
 
 private val GlobalValues = setOf("initial", "inherit", "unset", "revert")
@@ -275,9 +274,10 @@ private fun parseBackground(value: String): List<Arg> {
 
             val slashIndex = otherProps.indexOf("/")
             if (slashIndex != -1) {
-                val positionStr = otherProps.subList(max(0, slashIndex - 2), slashIndex).joinToString(" ")
-                val position = Arg.Function.positionOrNull(positionStr)
-                    ?: Arg.Function.position(otherProps[slashIndex - 1])
+                val position = ((slashIndex - 4).coerceAtLeast(0)..<slashIndex).firstNotNullOf {
+                    val positionStr = otherProps.subList(it, slashIndex).joinToString(" ")
+                    Arg.Function.positionOrNull(positionStr)
+                }
                 val size = otherProps.subList(slashIndex + 1, min(otherProps.size, slashIndex + 3))
                     .mapNotNull { Arg.UnitNum.ofOrNull(it) }
                     .takeIf { it.isNotEmpty() }
