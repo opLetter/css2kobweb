@@ -38,19 +38,33 @@ private fun List<Pair<String, ParsedProperty>>.combineLambdaModifiers(): Map<Str
 }
 
 private fun Map<String, ParsedProperty>.combineBackgroundPosition(): Map<String, ParsedProperty> {
-    val keys = setOf("backgroundPositionX", "backgroundPositionY")
-    val positions = keys.mapNotNull {
-        val value = this[it] ?: return@mapNotNull null
-        // one arg -> Arg.Literal -> see parseCssProperty()
-        value.args.single().toString().splitNotInParens(',')
-    }.ifEmpty { return this }
+    // necessary for the combined x & y value to be valid, since the 3-value syntax is limited
+    fun String.toTwoValue(direction: String) =
+        if (Arg.UnitNum.ofOrNull(this) == null) this else "$direction $this"
 
-    val positionArgs = positions.first().indices.map { index ->
-        val cssPosition = Arg.Function.position(positions.joinToString(" ") { it[index] })
-        Arg.Function("BackgroundPosition.of", cssPosition)
-    }
-    val newProperty = ParsedProperty("backgroundPosition", positionArgs)
-    return (this - keys) + (newProperty.name to newProperty)
+    val posKey = "backgroundPosition"
+
+    val x = this["${posKey}X"]?.args?.single()?.toString()?.splitNotInParens(',').orEmpty()
+    val y = this["${posKey}Y"]?.args?.single()?.toString()?.splitNotInParens(',').orEmpty()
+
+    if (x.isEmpty() && y.isEmpty()) return this
+
+    val backgroundPositions = if (x.size >= y.size) {
+        x.mapIndexed { index, xValue ->
+            val yValue = y.getOrNull(index)?.toTwoValue("top").orEmpty()
+            Arg.Function.position(xValue.toTwoValue("left") + " " + yValue)
+        }
+    } else {
+        y.mapIndexed { index, yValue ->
+            // technically if the x value isn't provided, the browser is supposed to figure it out,
+            // but kobweb requires it, so we just use a dummy value
+            val xValue = (x.getOrNull(index) ?: x.lastOrNull() ?: "left 50%").toTwoValue("left")
+            Arg.Function.position("$xValue ${yValue.toTwoValue("top")}")
+        }
+    }.map { Arg.Function("BackgroundPosition.of", it) }
+
+    val newProperty = ParsedProperty(posKey, backgroundPositions)
+    return (this - "${posKey}X" - "${posKey}Y").plus(newProperty.name to newProperty)
 }
 
 
