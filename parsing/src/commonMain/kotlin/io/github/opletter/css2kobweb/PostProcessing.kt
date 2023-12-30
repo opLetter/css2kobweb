@@ -82,14 +82,8 @@ private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String
         ?.reversed()
 
     val propertyKeys = setOf(
-        "backgroundImage",
-        "backgroundRepeat",
-        "backgroundSize",
-        "backgroundPosition",
-        "backgroundBlendMode",
-        "backgroundOrigin",
-        "backgroundClip",
-        "backgroundAttachment",
+        "backgroundImage", "backgroundRepeat", "backgroundSize", "backgroundPosition",
+        "backgroundBlendMode", "backgroundOrigin", "backgroundClip", "backgroundAttachment"
     )
     val argNames = propertyKeys.map { it.getArgName() }
 
@@ -179,7 +173,7 @@ private fun Map<String, ParsedProperty>.combineAnimationModifiers(): Map<String,
     }
     val newProperty = ParsedProperty("animation", animationProperties)
 
-    return (this - propertyKeys) + (newProperty.name to newProperty)
+    return (this - propertyKeys).plus(newProperty.name to newProperty)
 }
 
 private fun Map<String, ParsedProperty>.combineTransitionModifiers(): Map<String, ParsedProperty> {
