@@ -60,8 +60,13 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
     val styles = parsedModifiers.flatMap { it.label.splitNotInParens(',') }.groupBy { it.baseName() }
     val parsedStyles = styles.map { (baseName, selectors) ->
         val modifiers = selectors.associate { selector ->
-            val cleanedUpName = if (selector == baseName) "base"
-            else selector.substringAfter(baseName).let { cssRules[it] ?: "cssRule(\"$it\")" }
+            val cleanedUpName = if (selector == baseName) {
+                "base"
+            } else {
+                selector.substringAfter(baseName).let {
+                    cssRules[it] ?: "cssRule(\"${it.replace("\"", "\\\"")}\")"
+                }
+            }
 
             cleanedUpName to modifiersBySelector[selector]!!
         }
