@@ -279,7 +279,7 @@ private fun parseBackground(value: String): List<Arg> {
                     Arg.Function.positionOrNull(positionStr)
                 }
                 val size = otherProps.subList(slashIndex + 1, min(otherProps.size, slashIndex + 3))
-                    .mapNotNull { Arg.UnitNum.ofOrNull(it) }
+                    .mapNotNull { if (it == "auto") Arg.UnitNum.Auto else Arg.UnitNum.ofOrNull(it) }
                     .takeIf { it.isNotEmpty() }
                     ?.let { Arg.Function("BackgroundSize.of", it) }
                     ?: parseCssProperty("backgroundSize", otherProps[slashIndex + 1]).args.single()
