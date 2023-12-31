@@ -44,4 +44,6 @@ internal val cssRules = mapOf(
     ":first-letter" to "firstLetter",
     "::first-line" to "firstLine",
     ":first-line" to "firstLine",
+    "::placeholder" to "placeholder",
+    ":placeholder" to "placeholder",
 )
