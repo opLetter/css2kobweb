@@ -16,11 +16,11 @@ import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.silk.components.forms.Button
 import com.varabyte.kobweb.silk.components.forms.ButtonSize
+import com.varabyte.kobweb.silk.components.icons.fa.FaTrashCan
 import com.varabyte.kobweb.silk.components.layout.SimpleGrid
 import com.varabyte.kobweb.silk.components.layout.numColumns
 import com.varabyte.kobweb.silk.components.style.ComponentStyle
 import com.varabyte.kobweb.silk.components.style.base
-import com.varabyte.kobweb.silk.components.style.toAttrs
 import com.varabyte.kobweb.silk.components.style.toModifier
 import com.varabyte.kobweb.silk.theme.colors.palette.background
 import com.varabyte.kobweb.silk.theme.colors.palette.color
@@ -31,9 +31,11 @@ import io.github.opletter.css2kobweb.components.widgets.KotlinCode
 import io.github.opletter.css2kobweb.css2kobwebAsCode
 import kotlinx.browser.window
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.css.LineStyle
+import org.jetbrains.compose.web.css.cssRem
+import org.jetbrains.compose.web.css.fr
+import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.dom.H2
-import org.jetbrains.compose.web.dom.Label
 import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.dom.TextArea
 import kotlin.time.Duration.Companion.milliseconds
@@ -90,26 +92,29 @@ fun HomePage() {
                 .gridAutoRows { size(1.fr) }
         ) {
             Column(Modifier.fillMaxHeight()) {
-                Label(attrs = Modifier.display(DisplayStyle.Contents).toAttrs()) {
-                    H2(TextAreaLabelBarStyle.toAttrs()) { Text("CSS Input") }
-                    TextArea(
-                        cssInput,
-                        TextAreaStyle.toModifier()
-                            .outlineStyle(LineStyle.None)
-                            .border { style(LineStyle.None) }
-                            .toAttrs {
-                                attr("spellcheck", "false")
-                                attr("data-enable-grammarly", "false")
-                                ref {
-                                    it.focus()
-                                    onDispose { }
-                                }
-                                onInput {
-                                    cssInput = it.value
-                                }
-                            }
-                    )
+                TextAreaHeader("CSS Input") {
+                    HeaderButton({ cssInput = "" }, Modifier.ariaLabel("clear text")) {
+                        FaTrashCan()
+                    }
                 }
+                TextArea(
+                    cssInput,
+                    TextAreaStyle.toModifier()
+                        .outlineStyle(LineStyle.None)
+                        .border { style(LineStyle.None) }
+                        .ariaLabel("CSS Input")
+                        .toAttrs {
+                            spellCheck(false)
+                            attr("data-enable-grammarly", "false")
+                            ref {
+                                it.focus()
+                                onDispose { }
+                            }
+                            onInput {
+                                cssInput = it.value
+                            }
+                        }
+                )
             }
             // outer column needed for child's flex-grow (while keeping overflowY)
             Column(Modifier.overflow { x(Overflow.Auto) }) {
@@ -119,14 +124,7 @@ fun HomePage() {
                         .height(0.px) // set to make overflow work
                         .flexGrow(1)
                 ) {
-                    Row(
-                        TextAreaLabelBarStyle.toModifier().columnGap(1.cssRem),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        H2(Modifier.fillMaxWidth().toAttrs()) {
-                            Text("Kobweb Code")
-                        }
-
+                    TextAreaHeader("Kobweb Code") {
                         CopyTextButton(outputCode.joinToString(""))
                     }
                     KotlinCode(outputCode, TextAreaStyle.toModifier())
@@ -137,15 +135,34 @@ fun HomePage() {
 }
 
 @Composable
+fun TextAreaHeader(label: String, rightSideContent: @Composable () -> Unit) {
+    Row(
+        TextAreaLabelBarStyle.toModifier().columnGap(1.cssRem),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        H2(Modifier.fillMaxWidth().toAttrs()) {
+            Text(label)
+        }
+
+        rightSideContent()
+    }
+}
+
+@Composable
+fun HeaderButton(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Button({ onClick() }, modifier.fontSize(1.cssRem), size = ButtonSize.SM) {
+        content()
+    }
+}
+
+@Composable
 fun CopyTextButton(textToCopy: String) {
     var buttonText by remember { mutableStateOf("Copy") }
-    Button(
+    HeaderButton(
         {
             window.navigator.clipboard.writeText(textToCopy)
             buttonText = "Copied!"
             window.setTimeout({ buttonText = "Copy" }, 2000)
-        },
-        Modifier.fontSize(1.cssRem),
-        size = ButtonSize.SM,
+        }
     ) { Text(buttonText) }
 }
