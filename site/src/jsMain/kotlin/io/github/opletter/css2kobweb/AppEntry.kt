@@ -59,7 +59,7 @@ fun updateTheme(ctx: InitSilkContext) {
 
 @App
 @Composable
-fun MyApp(content: @Composable () -> Unit) {
+fun AppEntry(content: @Composable () -> Unit) {
     SilkApp {
         Surface(SmoothColorStyle.toModifier().minHeight(100.vh)) {
             content()
