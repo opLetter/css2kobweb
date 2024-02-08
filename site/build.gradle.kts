@@ -1,3 +1,4 @@
+import com.varabyte.kobweb.gradle.application.extensions.AppBlock
 import com.varabyte.kobweb.gradle.application.util.configAsKobwebApplication
 
 plugins {
@@ -11,6 +12,7 @@ version = "1.0-SNAPSHOT"
 
 kobweb {
     app {
+        legacyRouteRedirectStrategy = AppBlock.LegacyRouteRedirectStrategy.DISALLOW
         index {
             description = "Convert CSS to Kobweb modifiers & styles"
         }
