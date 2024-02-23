@@ -26,7 +26,7 @@ jobs:
         shell: bash
 
     env:
-      KOBWEB_CLI_VERSION: 0.9.13
+      KOBWEB_CLI_VERSION: 0.9.15
 
     steps:
       - name: Checkout
