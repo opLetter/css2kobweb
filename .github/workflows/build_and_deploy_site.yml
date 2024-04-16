@@ -44,6 +44,7 @@ jobs:
           build-scan-publish: true
           build-scan-terms-of-service-url: "https://gradle.com/terms-of-service"
           build-scan-terms-of-service-agree: "yes"
+          validate-wrappers: true
 
       - name: Query Browser Cache ID
         id: browser-cache-id
