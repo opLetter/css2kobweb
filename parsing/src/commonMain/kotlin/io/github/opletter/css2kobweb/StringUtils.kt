@@ -10,7 +10,18 @@ internal fun kebabToCamelCase(str: String): String = kebabToPascalCase(str).repl
 
 internal fun parenContents(str: String): String = str.substringAfter('(').substringBeforeLast(')').trim()
 
-internal data class ParseState(
+/**
+ * Splits a string based on delimiters, except those present between sets of [groups] chars,
+ * and except those between quotes.
+ *
+ * @param groups a set of char pairs, where the string will not be split between the first and second char of each pair
+ */
+internal fun String.splitNotBetween(
+    groups: Set<Pair<Char, Char>>,
+    splitOn: Set<Char>,
+): List<String> = splitNotBetween(groups, splitOn, ParseState())
+
+private data class ParseState(
     val quotesCount: Int = 0,
     val groupCounts: Map<Char, Int> = emptyMap(),
     val buffer: String = "",
@@ -23,10 +34,10 @@ internal data class ParseState(
  *
  * @param groups a set of char pairs, where the string will not be split between the first and second char of each pair
  */
-internal tailrec fun String.splitNotBetween(
+private tailrec fun String.splitNotBetween(
     groups: Set<Pair<Char, Char>>,
     splitOn: Set<Char>,
-    state: ParseState = ParseState(),
+    state: ParseState,
 ): List<String> {
     if (isEmpty()) {
         return (state.result + state.buffer).filter { it.isNotBlank() }
