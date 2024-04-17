@@ -42,8 +42,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           build-scan-publish: true
-          build-scan-terms-of-service-url: "https://gradle.com/terms-of-service"
-          build-scan-terms-of-service-agree: "yes"
+          build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+          build-scan-terms-of-use-agree: "yes"
           validate-wrappers: true
 
       - name: Query Browser Cache ID
@@ -65,7 +65,9 @@ jobs:
           fileName: "kobweb-${{ env.KOBWEB_CLI_VERSION }}.zip"
           tarBall: false
           zipBall: false
-          extract: true
+
+      - name: Unzip kobweb
+        run: unzip kobweb-${{ env.KOBWEB_CLI_VERSION }}.zip
 
       - name: Run export
         run: |
