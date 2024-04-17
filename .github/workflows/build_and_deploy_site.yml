@@ -58,16 +58,14 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ steps.browser-cache-id.outputs.value }}
 
       - name: Fetch kobweb
-        uses: robinraju/release-downloader@v1.8
+        uses: robinraju/release-downloader@v1.10
         with:
           repository: "varabyte/kobweb-cli"
           tag: "v${{ env.KOBWEB_CLI_VERSION }}"
           fileName: "kobweb-${{ env.KOBWEB_CLI_VERSION }}.zip"
           tarBall: false
           zipBall: false
-
-      - name: Unzip kobweb
-        run: unzip kobweb-${{ env.KOBWEB_CLI_VERSION }}.zip
+          extract: true
 
       - name: Run export
         run: |
