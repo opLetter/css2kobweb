@@ -23,8 +23,7 @@ class ParsedKeyframes(private val name: String, val modifiers: List<ParsedStyleB
         return buildList {
             add(CodeBlock("val ", CodeElement.Keyword))
             add(CodeBlock(kebabToPascalCase(name), CodeElement.Property))
-            add(CodeBlock(" by ", CodeElement.Keyword))
-            add(CodeBlock("Keyframes {\n", CodeElement.Plain))
+            add(CodeBlock(" = Keyframes {\n", CodeElement.Plain))
             modifiers.forEach { block ->
                 add(CodeBlock("\t", CodeElement.Plain))
 
@@ -48,7 +47,7 @@ class ParsedKeyframes(private val name: String, val modifiers: List<ParsedStyleB
     override fun toString(): String = asCodeBlocks().joinToString("") { it.text }
 }
 
-class ParsedComponentStyles(private val styles: List<ParsedComponentStyle>) : CssParseResult {
+class ParsedCssStyles(private val styles: List<ParsedCssStyle>) : CssParseResult {
     override fun asCodeBlocks(indentLevel: Int): List<CodeBlock> {
         val globalModifierCode = styles.flatMap { style ->
             style.modifiers.values.flatMap { it.filterModifiers<StyleModifier.Global>() }
@@ -66,7 +65,7 @@ class ParsedComponentStyles(private val styles: List<ParsedComponentStyle>) : Cs
 }
 
 class ParsedBlocks(
-    private val styles: ParsedComponentStyles,
+    private val styles: ParsedCssStyles,
     private val keyframes: List<ParsedKeyframes>,
 ) : CssParseResult {
     override fun asCodeBlocks(indentLevel: Int): List<CodeBlock> {
@@ -79,7 +78,7 @@ class ParsedBlocks(
 // convenient to reuse the same type for both
 typealias ParsedProperty = Arg.Function
 
-class ParsedComponentStyle(private val name: String, val modifiers: Map<String, StyleModifier>) {
+class ParsedCssStyle(private val name: String, val modifiers: Map<String, StyleModifier>) {
     fun asCodeBlocks(): List<CodeBlock> {
         val onlyBaseStyle = modifiers.size == 1 && modifiers.keys.first() == "base"
         val extra = if (onlyBaseStyle) ".base" else ""
@@ -87,8 +86,7 @@ class ParsedComponentStyle(private val name: String, val modifiers: Map<String, 
         val styleText = listOf(
             CodeBlock("val ", CodeElement.Keyword),
             CodeBlock("${name}Style", CodeElement.Property),
-            CodeBlock(" by ", CodeElement.Keyword),
-            CodeBlock("ComponentStyle$extra {\n", CodeElement.Plain)
+            CodeBlock(" = CssStyle$extra {\n", CodeElement.Plain)
         )
 
         val localModifierCode = modifiers.values

@@ -1,6 +1,6 @@
 package io.github.opletter.css2kobweb
 
-/** Represents the different ways a modifier can be used inside a ComponentStyle */
+/** Represents the different ways a modifier can be used inside a CssStyle */
 sealed class StyleModifier(val value: String) {
     sealed class Normal(value: String) : StyleModifier(value)
 

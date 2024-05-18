@@ -21,8 +21,8 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
             if (singleArg != null && (singleArg !is Arg.Property || singleArg.className != "")) {
                 parsedProperty
             } else if (cleanedCss.trimEnd().last() == '{') {
-                // display an empty ComponentStyle block if it looks like the css will have a selector
-                ParsedComponentStyles(listOf(ParsedComponentStyle("", emptyMap())))
+                // display an empty CssStyle block if it looks like the css will have a selector
+                ParsedCssStyles(listOf(ParsedCssStyle("", emptyMap())))
             } else {
                 ParsedStyleBlock(emptyList())
             }
@@ -72,8 +72,8 @@ fun css2kobweb(rawCSS: String, extractOutCommonModifiers: Boolean = true): CssPa
         }
         val styleName = kebabToPascalCase(baseName.substringAfter(".").substringAfter("#"))
             .replace("*", "All")
-        ParsedComponentStyle(styleName, modifiers)
-    }.let { ParsedComponentStyles(it) }
+        ParsedCssStyle(styleName, modifiers)
+    }.let { ParsedCssStyles(it) }
 
     val keyframes = cssBySelector.filterIsInstance<ParsedKeyframes>()
 
