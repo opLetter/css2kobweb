@@ -81,12 +81,13 @@ typealias ParsedProperty = Arg.Function
 class ParsedCssStyle(private val name: String, val modifiers: Map<String, StyleModifier>) {
     fun asCodeBlocks(): List<CodeBlock> {
         val onlyBaseStyle = modifiers.size == 1 && modifiers.keys.first() == "base"
-        val extra = if (onlyBaseStyle) ".base" else ""
 
-        val styleText = listOf(
+        val styleText = listOfNotNull(
             CodeBlock("val ", CodeElement.Keyword),
             CodeBlock("${name}Style", CodeElement.Property),
-            CodeBlock(" = CssStyle$extra {\n", CodeElement.Plain)
+            CodeBlock(" = CssStyle${if (onlyBaseStyle) "." else ""}", CodeElement.Plain),
+            if (onlyBaseStyle) CodeBlock("base", CodeElement.ExtensionFun) else null,
+            CodeBlock(" {\n", CodeElement.Plain)
         )
 
         val localModifierCode = modifiers.values
