@@ -6,7 +6,7 @@ import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.modifiers.*
-import com.varabyte.kobweb.silk.components.style.toModifier
+import com.varabyte.kobweb.silk.style.toModifier
 import io.github.opletter.css2kobweb.components.sections.Footer
 import io.github.opletter.css2kobweb.components.styles.BackgroundGradientStyle
 import org.jetbrains.compose.web.css.fr

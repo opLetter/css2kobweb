@@ -19,9 +19,9 @@ import com.varabyte.kobweb.silk.components.forms.ButtonSize
 import com.varabyte.kobweb.silk.components.icons.fa.FaTrashCan
 import com.varabyte.kobweb.silk.components.layout.SimpleGrid
 import com.varabyte.kobweb.silk.components.layout.numColumns
-import com.varabyte.kobweb.silk.components.style.ComponentStyle
-import com.varabyte.kobweb.silk.components.style.base
-import com.varabyte.kobweb.silk.components.style.toModifier
+import com.varabyte.kobweb.silk.style.CssStyle
+import com.varabyte.kobweb.silk.style.base
+import com.varabyte.kobweb.silk.style.toModifier
 import com.varabyte.kobweb.silk.theme.colors.palette.background
 import com.varabyte.kobweb.silk.theme.colors.palette.color
 import com.varabyte.kobweb.silk.theme.colors.palette.toPalette
@@ -40,7 +40,7 @@ import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.dom.TextArea
 import kotlin.time.Duration.Companion.milliseconds
 
-val TextAreaStyle by ComponentStyle.base {
+val TextAreaStyle = CssStyle.base {
     Modifier
         .fillMaxSize()
         .padding(topBottom = 0.5.cssRem, leftRight = 1.cssRem)
@@ -53,7 +53,7 @@ val TextAreaStyle by ComponentStyle.base {
         .color(colorMode.toPalette().background)
 }
 
-val TextAreaLabelBarStyle by ComponentStyle.base {
+val TextAreaLabelBarStyle = CssStyle.base {
     Modifier
         .fillMaxWidth()
         .backgroundColor(Colors.Black)

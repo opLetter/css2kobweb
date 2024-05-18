@@ -9,15 +9,15 @@ import com.varabyte.kobweb.compose.css.functions.toImage
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.graphics.Color
 import com.varabyte.kobweb.compose.ui.modifiers.background
-import com.varabyte.kobweb.silk.components.style.ComponentStyle
-import com.varabyte.kobweb.silk.components.style.base
+import com.varabyte.kobweb.silk.style.CssStyle
+import com.varabyte.kobweb.silk.style.base
 import org.jetbrains.compose.web.css.deg
 import org.jetbrains.compose.web.css.percent
 
 // Image courtesy of gradientmagic.com
 // https://www.gradientmagic.com/collection/popular/gradient/1583693118025
 // translated with css2kobweb :)
-val BackgroundGradientStyle by ComponentStyle.base {
+val BackgroundGradientStyle = CssStyle.base {
     Modifier
         .background(
             CSSBackground(

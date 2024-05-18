@@ -13,13 +13,13 @@ import com.varabyte.kobweb.compose.ui.modifiers.rowGap
 import com.varabyte.kobweb.compose.ui.modifiers.textAlign
 import com.varabyte.kobweb.silk.components.icons.fa.FaGithub
 import com.varabyte.kobweb.silk.components.navigation.Link
-import com.varabyte.kobweb.silk.components.style.ComponentStyle
-import com.varabyte.kobweb.silk.components.style.base
-import com.varabyte.kobweb.silk.components.style.toModifier
 import com.varabyte.kobweb.silk.components.text.SpanText
+import com.varabyte.kobweb.silk.style.CssStyle
+import com.varabyte.kobweb.silk.style.base
+import com.varabyte.kobweb.silk.style.toModifier
 import org.jetbrains.compose.web.css.cssRem
 
-val FooterStyle by ComponentStyle.base {
+val FooterStyle = CssStyle.base {
     Modifier
         .margin(topBottom = 1.cssRem)
         .alignSelf(AlignSelf.Center)
