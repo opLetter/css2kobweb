@@ -1,6 +1,6 @@
 package io.github.opletter.css2kobweb.components.styles
 
-import com.varabyte.kobweb.compose.css.CSSBackground
+import com.varabyte.kobweb.compose.css.Background
 import com.varabyte.kobweb.compose.css.CSSPosition
 import com.varabyte.kobweb.compose.css.functions.RadialGradient
 import com.varabyte.kobweb.compose.css.functions.linearGradient
@@ -20,10 +20,10 @@ import org.jetbrains.compose.web.css.percent
 val BackgroundGradientStyle = CssStyle.base {
     Modifier
         .background(
-            CSSBackground(
+            Background.of(
                 image = linearGradient(90.deg, Color.rgb(34, 222, 237), Color.rgb(135, 89, 215)).toImage()
             ),
-            CSSBackground(
+            Background.of(
                 image = radialGradient(RadialGradient.Shape.Circle, CSSPosition(75.percent, 99.percent)) {
                     add(Color.rgba(243, 243, 243, 0.04f), 0.percent)
                     add(Color.rgba(243, 243, 243, 0.04f), 50.percent)
@@ -31,7 +31,7 @@ val BackgroundGradientStyle = CssStyle.base {
                     add(Color.rgba(37, 37, 37, 0.04f), 100.percent)
                 }.toImage()
             ),
-            CSSBackground(
+            Background.of(
                 image = radialGradient(RadialGradient.Shape.Circle, CSSPosition(15.percent, 16.percent)) {
                     add(Color.rgba(99, 99, 99, 0.04f), 0.percent)
                     add(Color.rgba(99, 99, 99, 0.04f), 50.percent)
@@ -39,7 +39,7 @@ val BackgroundGradientStyle = CssStyle.base {
                     add(Color.rgba(45, 45, 45, 0.04f), 100.percent)
                 }.toImage()
             ),
-            CSSBackground(
+            Background.of(
                 image = radialGradient(RadialGradient.Shape.Circle, CSSPosition(86.percent, 7.percent)) {
                     add(Color.rgba(40, 40, 40, 0.04f), 0.percent)
                     add(Color.rgba(40, 40, 40, 0.04f), 50.percent)
@@ -47,7 +47,7 @@ val BackgroundGradientStyle = CssStyle.base {
                     add(Color.rgba(200, 200, 200, 0.04f), 100.percent)
                 }.toImage()
             ),
-            CSSBackground(
+            Background.of(
                 image = radialGradient(RadialGradient.Shape.Circle, CSSPosition(66.percent, 97.percent)) {
                     add(Color.rgba(36, 36, 36, 0.04f), 0.percent)
                     add(Color.rgba(36, 36, 36, 0.04f), 50.percent)
@@ -55,7 +55,7 @@ val BackgroundGradientStyle = CssStyle.base {
                     add(Color.rgba(46, 46, 46, 0.04f), 100.percent)
                 }.toImage()
             ),
-            CSSBackground(
+            Background.of(
                 image = radialGradient(RadialGradient.Shape.Circle, CSSPosition(40.percent, 91.percent)) {
                     add(Color.rgba(251, 251, 251, 0.04f), 0.percent)
                     add(Color.rgba(251, 251, 251, 0.04f), 50.percent)
