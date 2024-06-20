@@ -298,7 +298,7 @@ private fun parseBackground(value: String): List<Arg> {
                 }
             }
         }
-        Arg.Function("CSSBackground", backgroundArgs)
+        Arg.Function("Background.of", backgroundArgs)
     }.filter { it.args.isNotEmpty() }
 
     val color = backgrounds.first().splitNotInParens(' ').firstNotNullOfOrNull { Arg.asColorOrNull(it) }

@@ -111,7 +111,7 @@ private fun Map<String, ParsedProperty>.combineBackgroundModifiers(): Map<String
         val existingArgs = (existingBackgroundArgs?.get(index) as Arg.Function?)?.args.orEmpty()
         val combinedArgs = (existingArgs + args).sortedBy { argNames.indexOf(it.toString().substringBefore(" ")) }
 
-        Arg.Function("CSSBackground", combinedArgs)
+        Arg.Function("Background.of", combinedArgs)
     }.orEmpty().reversed()  // args order reversed as in kobweb
 
     val color = this["backgroundColor"]?.args

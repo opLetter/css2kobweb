@@ -22,6 +22,6 @@ internal fun Arg.Function.Companion.transition(
 }
 
 private fun transitionOf(args: List<Arg>): Arg.Function {
-    val extra = if (args.first() is Arg.Function) ".group" else ""
-    return Arg.Function("CSSTransition$extra", args)
+    val function = if (args.first() is Arg.Function) "group" else "of"
+    return Arg.Function("Transition.$function", args)
 }
