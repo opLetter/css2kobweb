@@ -13,7 +13,6 @@ import com.varabyte.kobweb.silk.components.layout.Surface
 import com.varabyte.kobweb.silk.init.InitSilk
 import com.varabyte.kobweb.silk.init.InitSilkContext
 import com.varabyte.kobweb.silk.init.registerStyleBase
-import com.varabyte.kobweb.silk.style.breakpoint.Breakpoint
 import com.varabyte.kobweb.silk.style.common.SmoothColorStyle
 import com.varabyte.kobweb.silk.style.toModifier
 import com.varabyte.kobweb.silk.theme.colors.palette.background
@@ -34,9 +33,10 @@ fun updateTheme(ctx: InitSilkContext) {
                     .fontSize(2.5.cssRem)
                     .marginBlock(0.5.cssRem, 0.5.cssRem)
             }
-            Breakpoint.MD {
-                Modifier.fontSize(3.cssRem)
-            }
+            // TODO: uncomment in kobweb 0.18.2
+//            Breakpoint.MD {
+//                Modifier.fontSize(3.cssRem)
+//            }
         }
         registerStyleBase("h2") {
             Modifier.marginBlock(0.cssRem, 0.cssRem)
