@@ -35,7 +35,7 @@ fun updateTheme(ctx: InitSilkContext) {
                     .marginBlock(0.5.cssRem, 0.5.cssRem)
             }
             Breakpoint.MD {
-                Modifier.fontSize(3.cssRem)
+                Modifier.fontSize(2.75.cssRem)
             }
         }
         registerStyleBase("h2") {
