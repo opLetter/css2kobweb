@@ -1,9 +1,9 @@
-import com.varabyte.kobweb.gradle.application.extensions.AppBlock
 import com.varabyte.kobweb.gradle.application.util.configAsKobwebApplication
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.jetbrains.compose)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kobweb.application)
 }
 
@@ -12,7 +12,6 @@ version = "1.0-SNAPSHOT"
 
 kobweb {
     app {
-        legacyRouteRedirectStrategy = AppBlock.LegacyRouteRedirectStrategy.DISALLOW
         index {
             description = "Convert CSS to Kobweb modifiers & styles"
         }
@@ -21,14 +20,18 @@ kobweb {
 
 kotlin {
     configAsKobwebApplication("css2kobweb")
+    js {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions.target = "es2015"
+    }
 
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.runtime)
+            implementation(libs.compose.runtime)
         }
 
         jsMain.dependencies {
-            implementation(compose.html.core)
+            implementation(libs.compose.html.core)
             implementation(libs.kobweb.core)
             implementation(libs.kobweb.silk)
             implementation(libs.silk.icons.fa)
