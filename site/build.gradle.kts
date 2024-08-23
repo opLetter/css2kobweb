@@ -36,6 +36,7 @@ kotlin {
             implementation(libs.kobweb.silk)
             implementation(libs.silk.icons.fa)
             implementation(projects.parsing)
+            implementation(libs.ktor.client.core)
         }
     }
 }

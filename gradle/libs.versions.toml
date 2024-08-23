@@ -1,7 +1,8 @@
 [versions]
 jetbrains-compose = "1.6.11"
 kobweb = "0.19.0"
-kotlin = "2.0.10"
+kotlin = "2.0.20"
+ktor = "3.0.0-beta-2"
 
 [libraries]
 compose-html-core = { module = "org.jetbrains.compose.html:html-core", version.ref = "jetbrains-compose" }
@@ -9,6 +10,8 @@ compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.re
 kobweb-core = { module = "com.varabyte.kobweb:kobweb-core ", version.ref = "kobweb" }
 kobweb-silk = { module = "com.varabyte.kobweb:kobweb-silk", version.ref = "kobweb" }
 silk-icons-fa = { module = "com.varabyte.kobwebx:silk-icons-fa", version.ref = "kobweb" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
