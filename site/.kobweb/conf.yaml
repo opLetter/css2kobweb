@@ -1,6 +1,6 @@
 site:
   title: "css2kobweb"
-  routePrefix: "css2kobweb" # repo name for gh-pages
+  basePath: "css2kobweb" # repo name for gh-pages
 
 server:
   files:

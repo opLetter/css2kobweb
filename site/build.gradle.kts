@@ -39,3 +39,7 @@ kotlin {
         }
     }
 }
+
+composeCompiler {
+    includeTraceMarkers = false
+}
