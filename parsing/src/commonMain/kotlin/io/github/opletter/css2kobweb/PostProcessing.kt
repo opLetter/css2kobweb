@@ -21,7 +21,7 @@ internal fun List<Pair<String, ParsedProperty>>.postProcessProperties(): List<Pa
         .combineAnimationModifiers()
         .values.map { property ->
             val matchedFunction = setOf("width", "height", "size").find { it == property.name }
-            if (matchedFunction != null && property.args.single() == Arg.UnitNum.of("100%"))
+            if (matchedFunction != null && property.args.singleOrNull() == Arg.UnitNum.of("100%"))
                 ParsedProperty("fillMax${matchedFunction.replaceFirstChar(Char::uppercase)}")
             else property
         }
