@@ -1,5 +1,4 @@
 import com.varabyte.kobweb.gradle.application.util.configAsKobwebApplication
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -20,17 +19,14 @@ kobweb {
 
 kotlin {
     configAsKobwebApplication("css2kobweb")
-    js {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions.target = "es2015"
+    js().compilerOptions {
+        target = "es2015"
+        freeCompilerArgs.add("-Xir-generate-inline-anonymous-functions")
     }
 
     sourceSets {
-        commonMain.dependencies {
-            implementation(libs.compose.runtime)
-        }
-
         jsMain.dependencies {
+            implementation(libs.compose.runtime)
             implementation(libs.compose.html.core)
             implementation(libs.kobweb.core)
             implementation(libs.kobweb.silk)
