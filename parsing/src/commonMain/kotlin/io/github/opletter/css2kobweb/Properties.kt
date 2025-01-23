@@ -368,7 +368,7 @@ private fun parseAnimation(value: String): List<Arg> {
                 add(0, Arg.NamedArg("name", parseCssProperty("animationName", name).args.single()))
             }
         }
-        Arg.Function("CSSAnimation", animationArgs)
+        Arg.Function("Animation.of", animationArgs)
     }.filter { it.args.isNotEmpty() }
 
     return animationObjects

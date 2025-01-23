@@ -149,7 +149,7 @@ private fun Map<String, ParsedProperty>.combineAnimationModifiers(): Map<String,
     // then this return condition can be expanded to match the one for [background]
 
     // IMPORTANT: we currently take advantage of the above fact by using combineAnimationModifiers
-    // as the sole place where `CSSAnimation(...)` gets transformed into 'Name.toAnimation(...)'
+    // as the sole place where `Animation.of(...)` gets transformed into 'Name.toAnimation(...)'
     // If the `animation-...` properties are ever supported individually, this would need to be accounted for
     if (propertyValues.isEmpty() && existingAnimation == null)
         return this
@@ -167,9 +167,9 @@ private fun Map<String, ParsedProperty>.combineAnimationModifiers(): Map<String,
             check(arg is Arg.NamedArg)
             Arg.ExtensionCall(
                 Arg.Property.fromKebabValue(null, arg.value.toString().removeSurrounding("\"")),
-                Arg.Function("toAnimation", listOf(Arg.Property(null, "colorMode")) + otherArgs)
+                Arg.Function("toAnimation", otherArgs)
             )
-        } ?: Arg.Function("CSSAnimation", combinedArgs)
+        } ?: Arg.Function("Animation.of", combinedArgs)
     }
     val newProperty = ParsedProperty("animation", animationProperties)
 
