@@ -20,9 +20,7 @@ import org.jetbrains.compose.web.css.percent
 val BackgroundGradientStyle = CssStyle.base {
     Modifier
         .background(
-            Background.of(
-                image = linearGradient(90.deg, Color.rgb(34, 222, 237), Color.rgb(135, 89, 215)).toImage()
-            ),
+            Background.of(image = linearGradient(Color.rgb(34, 222, 237), Color.rgb(135, 89, 215), 90.deg).toImage()),
             Background.of(
                 image = radialGradient(RadialGradient.Shape.Circle, CSSPosition(75.percent, 99.percent)) {
                     add(Color.rgba(243, 243, 243, 0.04f), 0.percent)

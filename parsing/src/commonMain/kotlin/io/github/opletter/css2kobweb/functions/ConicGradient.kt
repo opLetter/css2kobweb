@@ -13,7 +13,7 @@ internal fun Arg.Function.Companion.conicGradient(value: String): Arg.Function {
         ?.let { Arg.Function.position(it) }
 
     if (argsAsColors.size == 2) {
-        return conicGradientOf(listOfNotNull(angle, argsAsColors[0], argsAsColors[1], position))
+        return conicGradientOf(listOfNotNull(argsAsColors[0], argsAsColors[1], angle, position))
     }
 
     val mainArgs = listOfNotNull(angle, position)

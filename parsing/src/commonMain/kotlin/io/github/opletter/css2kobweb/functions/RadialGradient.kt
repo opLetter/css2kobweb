@@ -26,7 +26,7 @@ internal fun Arg.Function.Companion.radialGradient(value: String): Arg.Function 
 
     val argsAsColors = parts.mapNotNull { Arg.asColorOrNull(it) }
     if (argsAsColors.size == 2) {
-        return radialGradientOf(listOfNotNull(shape, argsAsColors[0], argsAsColors[1], position))
+        return radialGradientOf(listOfNotNull(argsAsColors[0], argsAsColors[1], shape, position))
     }
 
     val mainArgs = listOfNotNull(shape, position)

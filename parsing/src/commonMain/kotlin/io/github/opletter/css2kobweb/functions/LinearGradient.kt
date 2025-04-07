@@ -21,10 +21,10 @@ internal fun Arg.Function.Companion.linearGradient(value: String): Arg.Function 
     }
     if (parts.size == 3 && argsAsColors.size == 2) {
         if (firstAsUnitNum != null) {
-            return linearGradientOf(listOf(firstAsUnitNum) + argsAsColors)
+            return linearGradientOf(argsAsColors + firstAsUnitNum)
         }
         if (!firstHasColor) {
-            return linearGradientOf(listOf(direction) + argsAsColors)
+            return linearGradientOf(argsAsColors + direction)
         }
     }
 
