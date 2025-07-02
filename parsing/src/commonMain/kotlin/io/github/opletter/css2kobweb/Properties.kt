@@ -8,17 +8,21 @@ private val GlobalValues = setOf("initial", "inherit", "unset", "revert")
 internal fun parseCssProperty(propertyName: String, value: String): ParsedProperty {
     if (propertyName == "transition") {
         val transitions = value.splitNotInParens(',').map { transition ->
-            val params = transition.splitNotInParens(' ')
-                .let { if (Arg.UnitNum.ofOrNull(it.first()) != null) listOf("all") + it else it }
-            val thirdArg = params.getOrNull(2)?.let {
-                Arg.UnitNum.ofOrNull(it) ?: parseCssProperty("transitionTimingFunction", it).args.singleOrNull()
+            val args = transition.splitNotInParens(' ').mapNotNull { arg ->
+                if (listOf("linear", "cubic", "ease", "step").any { arg.startsWith(it) }) {
+                    parseCssProperty("transitionTimingFunction", arg).args.singleOrNull()
+                } else {
+                    Arg.UnitNum.ofOrNull(arg) ?: Arg.Literal("\"$arg\"")
+                }
             }
-            val fourthArg = params.getOrNull(3)?.let { Arg.UnitNum.of(it) }
-
+            val durationIndex = args.indexOfFirst { it is Arg.UnitNum }
             Arg.Function.transition(
-                property = Arg.Literal("\"${params[0]}\""),
-                duration = params.getOrNull(1)?.let { Arg.UnitNum.of(it) },
-                remainingArgs = listOfNotNull(thirdArg, fourthArg),
+                property = args.singleOrNull { it is Arg.Literal } ?: Arg.Literal("\"all\""),
+                duration = args.getOrNull(durationIndex),
+                remainingArgs = listOfNotNull(
+                    args.firstOrNull { it !is Arg.UnitNum && it !is Arg.Literal },
+                    args.drop(durationIndex + 1).firstOrNull { it is Arg.UnitNum }
+                )
             )
         }
         return ParsedProperty(propertyName, transitions)
