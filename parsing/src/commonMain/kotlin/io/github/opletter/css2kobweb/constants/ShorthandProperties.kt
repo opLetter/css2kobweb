@@ -15,6 +15,7 @@ private val shorthandProperties = listOf(
     ShorthandProperty("borderRight", listOf("Width", "Style", "Color")),
     ShorthandProperty("borderLeft", listOf("Width", "Style", "Color")),
     ShorthandProperty("overflow", listOf("X", "Y")),
+    ShorthandProperty("outline", listOf("Width", "Style", "Color")),
     ShorthandProperty("paddingInline", listOf("Start", "End")),
     ShorthandProperty("paddingBlock", listOf("Start", "End")),
     // Currently don't use scope for these as it's usually unnecessary, and instead we can provide smart reduced
