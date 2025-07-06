@@ -100,7 +100,7 @@ fun HomePage() {
                 TextArea(
                     cssInput,
                     TextAreaStyle.toModifier()
-                        .outlineStyle(LineStyle.None)
+                        .outline { style(LineStyle.None) }
                         .border { style(LineStyle.None) }
                         .ariaLabel("CSS Input")
                         .toAttrs {

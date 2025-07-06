@@ -1,6 +1,7 @@
 package io.github.opletter.css2kobweb
 
 import androidx.compose.runtime.Composable
+import com.varabyte.kobweb.compose.foundation.layout.boxClasses
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.graphics.Color
 import com.varabyte.kobweb.compose.ui.modifiers.fontFamily
@@ -61,7 +62,7 @@ fun updateTheme(ctx: InitSilkContext) {
 @Composable
 fun AppEntry(content: @Composable () -> Unit) {
     SilkApp {
-        Surface(SmoothColorStyle.toModifier().minHeight(100.vh)) {
+        Surface(SmoothColorStyle.toModifier().boxClasses().minHeight(100.vh)) {
             content()
         }
     }
