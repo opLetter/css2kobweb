@@ -30,10 +30,12 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
     if (propertyName == "transform") {
         val statements = value.splitNotInParens(' ').map { func ->
             val args = parenContents(func).splitNotInParens(',').map {
-                if (it.toDoubleOrNull() == 0.0 && (func.startsWith("matrix") || func.startsWith("scale")))
+                if (it.toDoubleOrNull() == 0.0 && (func.startsWith("matrix") || func.startsWith("scale"))) {
                     Arg.RawNumber(0)
-                else
-                    Arg.UnitNum.ofOrNull(it) ?: Arg.RawNumber(it.toIntOrNull() ?: it.toDouble())
+                } else {
+                    val zeroUnit = if (func.startsWith("rotate") || func.startsWith("skew")) "deg" else "px"
+                    Arg.UnitNum.ofOrNull(it, zeroUnit) ?: Arg.RawNumber(it.toIntOrNull() ?: it.toDouble())
+                }
             }
             Arg.Function(func.substringBefore('('), args)
         }
