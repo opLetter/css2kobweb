@@ -31,6 +31,9 @@ sealed class Arg(private val value: String) {
             "$arg1Str $operation $arg2Str"
         })
 
+        class Function(val name: String, val args: List<CalcNumber>) :
+            UnitNum("$name(${args.joinToString()})")
+
         object Auto : UnitNum("autoLength")
 
         companion object {
@@ -43,11 +46,21 @@ sealed class Arg(private val value: String) {
             }
 
             private fun String.prependCalcToParens(): String = fold("") { result, c ->
-                result + if (c == '(' && result.takeLast(4) != "calc") "calc$c" else c
+                // It's not valid CSS but parse parens without "calc" as a calc anyway (e.g. in "(100% - 50px)")
+                // TODO: make that^ a test
+                result + if (c == '(' && result.lastOrNull()?.isLetter() != true) "calc$c" else c
             }
+
+            private val mathFunctions = listOf("min", "max", "clamp")
 
             private fun parseCalcNum(str: String, zeroUnit: String): CalcNumber? {
                 if (str == "0") return Normal(0, zeroUnit)
+
+                val matchingMathFunction = mathFunctions.firstOrNull { str.startsWith("$it(") }
+                if (matchingMathFunction != null) {
+                    val args = parenContents(str).splitNotInParens(',').map { parseCalcNum(it, zeroUnit)!! }
+                    return Function(matchingMathFunction, args)
+                }
 
                 if (str.startsWith("calc(")) {
                     // whitespace isn't required for / & *, so we add it for parsing (extra space gets trimmed anyway)
@@ -155,6 +168,8 @@ fun Arg.asCodeBlocks(
                 add(CodeBlock(")", CodeElement.Plain))
             }
         }
+
+        is Arg.UnitNum.Function -> Arg.Function(name, args).asCodeBlocks(indentLevel, nestedCalc = true)
 
         is Arg.UnitNum.Auto -> listOf(CodeBlock(toString(), CodeElement.Property))
 

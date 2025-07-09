@@ -178,23 +178,17 @@ internal fun parseCssProperty(propertyName: String, value: String): ParsedProper
                 "StepPosition"
             } else propertyName
 
-            val filterFunctions = setOf(
+            val globalFunctions = setOf(
                 "blur", "brightness", "contrast", "dropShadow", "grayscale", "hueRotate", "invert", "saturate", "sepia",
             )
-            val mathFunctions = setOf("clamp", "min", "max")
-            val simpleGlobalFunctions = filterFunctions + mathFunctions
 
             val functionName = kebabToCamelCase(prop.substringBefore("("))
-            val prefix = if (functionName in simpleGlobalFunctions) "" else "$className."
+            val prefix = if (functionName in globalFunctions) "" else "$className."
 
-            val adjustedArgs = parenContents(prop).let { args ->
-                // math function can contain expressions, so wrap them in calc() for parsing purposes
-                if (functionName in mathFunctions)
-                    args.splitNotInParens(',').joinToString { "calc($it)" }
-                else args
-            }
-
-            return@map Arg.Function("$prefix$functionName", parseCssProperty(functionPropertyName, adjustedArgs).args)
+            return@map Arg.Function(
+                name = prefix + functionName,
+                args = parseCssProperty(functionPropertyName, parenContents(prop)).args
+            )
         }
 
         Arg.Property.fromKebabValue(className, prop).let {
