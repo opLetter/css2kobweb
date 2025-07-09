@@ -21,10 +21,14 @@ internal fun getProperties(str: String): List<ParsedProperty> {
 
         if (name.startsWith("--")) return@mapNotNull null // ignore css variables
 
-        val parsedProperty = if (name.startsWith("-")) {
+        fun argAsStringFallback(): Arg.Function {
             val propertyArgs = listOf(name, value).map { Arg.Literal.withQuotesIfNecessary(it) }
-            Arg.Function("styleModifier", lambdaStatements = listOf(Arg.Function("property", propertyArgs)))
-        } else {
+            return Arg.Function("styleModifier", lambdaStatements = listOf(Arg.Function("property", propertyArgs)))
+        }
+
+        val parsedProperty = if (name.startsWith('-')) {
+            argAsStringFallback()
+        } else try {
             parseCssProperty(
                 propertyName = kebabToCamelCase(name),
                 value = value
@@ -33,6 +37,8 @@ internal fun getProperties(str: String): List<ParsedProperty> {
                     .joinToString(" ") { it.trim() }
                     .replace("  ", " "),
             )
+        } catch (_: Exception) {
+            argAsStringFallback()
         }
 
         parsedProperty.name to parsedProperty
