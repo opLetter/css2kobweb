@@ -43,6 +43,7 @@ import kotlin.time.Duration.Companion.milliseconds
 val TextAreaStyle = CssStyle.base {
     Modifier
         .fillMaxSize()
+        .margin(0.px) // Override firefox's default
         .padding(topBottom = 0.5.cssRem, leftRight = 1.cssRem)
         .borderRadius(bottomLeft = 8.px, bottomRight = 8.px)
         .resize(Resize.None)
