@@ -6,6 +6,10 @@ import io.github.opletter.css2kobweb.parenContents
 import kotlin.math.roundToInt
 
 internal fun Arg.Companion.asColorOrNull(value: String): Arg? {
+    if (value == "currentColor") {
+        // Use JB's `Color` as Kobweb's `Colors` doesn't support currentColor since it's a "fake" color
+        return Arg.Property("Color", "currentColor")
+    }
     if (value.startsWith("#") && ' ' !in value.trim()) {
         val hexValue = if (value.length <= 5) {
             value.drop(1).toList().joinToString("") { "$it$it" } // #RGBA = #RRGGBBAA = 0xRRGGBBAA
