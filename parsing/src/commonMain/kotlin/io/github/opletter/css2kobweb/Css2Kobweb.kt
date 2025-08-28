@@ -94,3 +94,4 @@ private fun inlineCssVariables(css: String): String {
 }
 
 private fun String.baseName() = substringBefore(":").substringBefore(" ")
+    .let { if (it.startsWith('.')) '.' + it.drop(1).substringBefore('.') else it } // Handle ".class1.class2"
