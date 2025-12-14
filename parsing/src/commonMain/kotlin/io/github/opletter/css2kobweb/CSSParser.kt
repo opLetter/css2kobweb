@@ -17,7 +17,10 @@ internal fun parseCss(css: String): List<CssParseResult> {
 
 internal fun getProperties(str: String): List<ParsedProperty> {
     return str.splitNotInParens(';').mapNotNull { prop ->
-        val (name, value) = prop.split(':', limit = 2).map { it.trim() } + "" // use empty if not present
+        val value = prop.substringAfterLast(":", "").ifEmpty { return@mapNotNull null }
+        // Ignore curly braces from unhandled nested CSS blocks (e.g. @media)
+        // Ideally they would be handled, but this improves the output for cases that aren't
+        val name = prop.substringBeforeLast(":").substringAfterLast("{").trim()
 
         if (name.startsWith("--")) return@mapNotNull null // ignore css variables
 
